@@ -1,14 +1,12 @@
-import { expect } from 'chai';
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
-import { standardizePath as s } from 'brighterscript';
-import { Runner } from './Runner';
 import * as testUtils from './testUtils.spec';
+import { Runner } from './Runner';
+import { expect } from 'chai';
+import { standardizePath as s } from 'brighterscript';
 
 const tempDir = path.join(process.cwd(), '.tmp');
 const projectDir = path.join(tempDir, 'project');
-const complibDir1 = path.join(tempDir, 'complib1');
-const complibDir2 = path.join(tempDir, 'complib2');
 
 describe('Runner', () => {
     let runner: Runner;
@@ -27,7 +25,7 @@ describe('Runner', () => {
 
     function addLogfile(logfilePath: string, contents: string) {
         runner.options.crashlogs.push(logfilePath);
-        fsExtra.outputFileSync(path.resolve(runner.options.cwd!, logfilePath), contents);
+        fsExtra.outputFileSync(path.resolve(runner.cwd, logfilePath), contents);
     }
 
     it('finds text log files', async () => {
@@ -42,7 +40,7 @@ describe('Runner', () => {
 
     it('finds logs zip, extracts, and then adds all files', async () => {
         const zipPath = s`${tempDir}/logs.zip`;
-        testUtils.createZip({
+        await testUtils.createZip({
             'log1.text': 'a',
             'subdir1/log2.txt': 'b',
             'subdir1/subdir2/log3.txt': 'c'

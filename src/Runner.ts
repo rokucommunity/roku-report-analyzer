@@ -1,7 +1,7 @@
+import * as extract from 'extract-zip';
+import * as fsExtra from 'fs-extra';
 import * as globAll from 'glob-all';
 import * as path from 'path';
-import * as extract from 'extract-zip';
-import * as fsExtra from "fs-extra";
 import { CrashlogFile } from './CrashlogFile';
 import { util } from './util';
 
@@ -40,8 +40,7 @@ export class Runner {
             absolute: true,
             cwd: this.cwd
         });
-        for (let i = 0; i < logs.length; i++) {
-            const logPath = logs[i];
+        for (const logPath of logs) {
             //if this logPath is a zip archive, unzip it and add all the files
             if (logPath.toLowerCase().endsWith('.zip')) {
                 const dest = path.join(this.outDir, path.basename(logPath));

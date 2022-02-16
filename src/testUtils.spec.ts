@@ -1,5 +1,4 @@
-import AdmZip = require("adm-zip");
-import * as fsExtra from 'fs-extra';
+import * as AdmZip from 'adm-zip';
 
 /**
  * Create a zip from in-memory file strings
