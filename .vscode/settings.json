@@ -8,6 +8,8 @@
         "**/Thumbs.db": true,
         "**/node_modules": true,
         "**/dist": true,
-        "**/.tmp":true
+        "**/.tmp": true,
+        "**/.nyc_output": true,
+        "**/coverage": true
     }
 }

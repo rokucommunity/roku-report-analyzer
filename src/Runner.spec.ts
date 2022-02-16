@@ -32,7 +32,7 @@ describe('Runner', () => {
         addLogfile('log1.text', '');
         await runner.run();
         expect(
-            runner['crashlogFiles'].map(x => s`${x.logfilePath}`)
+            runner['crashlogFiles'].map(x => s`${x.srcPath}`)
         ).to.eql([
             s`${runner.cwd}/log1.text`
         ]);
@@ -48,7 +48,7 @@ describe('Runner', () => {
         runner.options.crashlogs.push(zipPath);
         await runner.run();
         expect(
-            runner['crashlogFiles'].map(x => s`${x.logfilePath}`)
+            runner['crashlogFiles'].map(x => s`${x.srcPath}`)
         ).to.eql([
             s`${runner.outDir}/logs.zip/log1.text`,
             s`${runner.outDir}/logs.zip/subdir1/log2.txt`,
