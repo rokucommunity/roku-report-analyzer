@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Test",
+            "type": "node",
+            "request": "launch",
+            "smartStep": true,
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "sourceMaps": true,
+            "args": [
+                "--timeout",
+                "987654"
+            ],
+            "skipFiles": [
+                "${workspaceFolder}/node_modules/**/*.js",
+                "<node_internals>/**/*.js"
+            ],
+            "cwd": "${workspaceRoot}",
+            "protocol": "inspector",
+            "internalConsoleOptions": "openOnSessionStart",
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/typescript/**",
+                "!**/node_modules/vscode-languageserver/**"
+            ]
+        }
+    ]
+}

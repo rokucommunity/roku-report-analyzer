@@ -3,17 +3,16 @@ import * as fsExtra from 'fs-extra';
 import * as path from 'path';
 import { standardizePath as s } from 'brighterscript';
 import { Runner } from './Runner';
+import * as testUtils from './testUtils.spec';
 
-const tempDir = path.join(process.cwd(), 'temp');
+const tempDir = path.join(process.cwd(), '.tmp');
 const projectDir = path.join(tempDir, 'project');
 const complibDir1 = path.join(tempDir, 'complib1');
 const complibDir2 = path.join(tempDir, 'complib2');
 
 describe('Runner', () => {
     let runner: Runner;
-    function cwd() {
-        return runner.options.cwd;
-    }
+
     beforeEach(() => {
         fsExtra.emptydirSync(tempDir);
         runner = new Runner({
@@ -37,7 +36,25 @@ describe('Runner', () => {
         expect(
             runner['crashlogFiles'].map(x => s`${x.logfilePath}`)
         ).to.eql([
-            s`${cwd()}/log1.text`
+            s`${runner.cwd}/log1.text`
+        ]);
+    });
+
+    it('finds logs zip, extracts, and then adds all files', async () => {
+        const zipPath = s`${tempDir}/logs.zip`;
+        testUtils.createZip({
+            'log1.text': 'a',
+            'subdir1/log2.txt': 'b',
+            'subdir1/subdir2/log3.txt': 'c'
+        }, zipPath);
+        runner.options.crashlogs.push(zipPath);
+        await runner.run();
+        expect(
+            runner['crashlogFiles'].map(x => s`${x.logfilePath}`)
+        ).to.eql([
+            s`${runner.outDir}/logs.zip/log1.text`,
+            s`${runner.outDir}/logs.zip/subdir1/log2.txt`,
+            s`${runner.outDir}/logs.zip/subdir1/subdir2/log3.txt`
         ]);
     });
 });

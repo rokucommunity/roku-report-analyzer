@@ -1,8 +1,7 @@
-import * as zlib from 'zlib';
-
+import * as fsExtra from 'fs-extra';
 class Util {
-    public unzip(srcPath: string, destPath: string) {
-        zlib.gunzipSync();
+    public isDirSync(dirPath: string) {
+        return fsExtra.existsSync(dirPath) && fsExtra.lstatSync(dirPath).isDirectory()
     }
 }
 

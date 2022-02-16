@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as extract from 'extract-zip';
 import * as fsExtra from "fs-extra";
 import { CrashlogFile } from './CrashlogFile';
+import { util } from './util';
 
 export class Runner {
     public constructor(
@@ -10,11 +11,11 @@ export class Runner {
     ) {
     }
 
-    private get cwd() {
+    public get cwd() {
         return path.resolve(this.options.cwd ?? process.cwd());
     }
 
-    private get outDir() {
+    public get outDir() {
         return path.join(this.cwd, this.options.outDir ?? 'dist');
     }
 
@@ -22,9 +23,11 @@ export class Runner {
         //clear the outDir
         fsExtra.emptydirSync(this.outDir);
 
-        this.loadCrashlogs();
-        this.loadProject();
-        this.loadCompLibs();
+        await Promise.all([
+            this.loadCrashlogs(),
+            this.loadProject(),
+            this.loadCompLibs()
+        ]);
     }
 
     private crashlogFiles: CrashlogFile[] = [];
@@ -46,13 +49,14 @@ export class Runner {
                 await extract(logPath, {
                     dir: dest
                 });
+
+                const unzippedFiles = globAll.sync(['**/*'], {
+                    absolute: true,
+                    cwd: dest
+                }).filter(x => !util.isDirSync(x));
+
                 //add all extracted files to the list to be processed
-                logs.push(
-                    ...globAll.sync(['**/*'], {
-                        absolute: true,
-                        cwd: dest
-                    })
-                );
+                logs.push(...unzippedFiles);
             } else {
                 this.crashlogFiles.push(
                     new CrashlogFile(logPath)

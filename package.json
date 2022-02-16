@@ -1,5 +1,5 @@
 {
-  "name": "crashlogger",
+  "name": "roku-report-analyzer",
   "version": "1.0.0",
   "description": "Converts production file paths into source code paths based on sourcemaps",
   "license": "MIT",
@@ -7,7 +7,15 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test:nocover": "mocha"
+    "preversion": "npm run build && npm run lint && npm run test",
+    "build": "rimraf out && tsc",
+    "watch": "rimraf out && tsc --watch",
+    "lint": "eslint \"src/**\"",
+    "format": "tsfmt -r",
+    "test": "nyc mocha",
+    "test:nocover": "mocha",
+    "test:watch": "mocha --watch",
+    "publish-coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "mocha": {
     "spec": "src/**/*.spec.ts",
@@ -26,6 +34,7 @@
     "bsconfig.schema.json"
   ],
   "devDependencies": {
+    "@types/adm-zip": "^0.4.34",
     "@types/chai": "^4.3.0",
     "@types/fs-extra": "^9.0.13",
     "@types/glob": "^7.2.0",
@@ -35,15 +44,18 @@
     "@types/yargs": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "^5.12.0",
     "@typescript-eslint/parser": "^5.12.0",
+    "adm-zip": "^0.5.9",
     "chai": "^4.3.6",
     "eslint": "^8.9.0",
     "eslint-plugin-no-only-tests": "^2.6.0",
     "mocha": "^9.2.0",
     "nyc": "^15.1.0",
+    "rimraf": "^3.0.2",
     "sinon": "^13.0.1",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.5.0",
-    "typescript": "^4.5.5"
+    "typescript": "^4.5.5",
+    "typescript-formatter": "^7.2.2"
   },
   "dependencies": {
     "brighterscript": "^0.45.0",
