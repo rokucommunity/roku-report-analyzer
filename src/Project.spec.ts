@@ -33,8 +33,8 @@ describe('Project', () => {
     });
 
     it('separates complib prefix and path', () => {
-        project = new Project(runner, 'complib1:C:\\projects\\videoApp');
-        expect(project.srcPath).to.eql(s`C:\\projects\\videoApp`);
+        project = new Project(runner, `complib1:${tempDir}\\videoApp`);
+        expect(project.srcPath).to.eql(s`${tempDir}\\videoApp`);
         expect(project.prefix).to.eql('complib1');
     });
 });
