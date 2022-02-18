@@ -16,7 +16,7 @@ describe('Runner', () => {
         runner = new Runner({
             cwd: tempDir,
             crashlogs: [],
-            project: projectDir
+            projects: [projectDir]
         });
     });
     afterEach(() => {

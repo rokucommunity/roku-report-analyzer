@@ -3,6 +3,7 @@ import * as fsExtra from 'fs-extra';
 import * as globAll from 'glob-all';
 import * as path from 'path';
 import { CrashlogFile } from './CrashlogFile';
+import { Project } from './Project';
 import { util } from './util';
 
 export class Runner {
@@ -25,12 +26,17 @@ export class Runner {
 
         await Promise.all([
             this.loadCrashlogs(),
-            this.loadProject(),
-            this.loadCompLibs()
+            this.loadProjects()
         ]);
     }
 
     private crashlogFiles: CrashlogFile[] = [];
+
+    /**
+     * All projects that contain source code (and source maps) which will be referenced
+     * when translating pkg paths to file system paths.
+     */
+    private projects: Project[] = [];
 
     /**
      * Load all provided crash logs
@@ -64,27 +70,29 @@ export class Runner {
         }
     }
 
-    private async loadProject() {
-    }
-
-    private async loadCompLibs() {
-
+    private async loadProjects() {
+        for (const complib of this.options.projects ?? []) {
+            const project = new Project(this, complib);
+            this.projects.push(project);
+        }
+        await Promise.all(
+            this.projects.map(x => x.load())
+        );
     }
 }
 
-interface RunnerOptions {
+export interface RunnerOptions {
     /**
      * An array of globs used to find crash logs
      */
     crashlogs: string[];
+
     /**
-     * The path to the root application folder containing sourcemaps
+     * Paths to source code folders, optionally prefixed with sg_component_libs_provided.
+     * For example: ["C:/projects/mainApp", "./complib1", "complib2:C:/projects/complib2"]
      */
-    project: string;
-    /**
-     * Component library paths, optionally prefixed with sg_component_libs_provided
-     */
-    libs?: string[];
+    projects: string[];
+
     /**
      * Overrides the current working directory
      */
