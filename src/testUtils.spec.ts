@@ -1,4 +1,5 @@
 import * as AdmZip from 'adm-zip';
+import { expect } from 'chai';
 
 /**
  * Create a zip from in-memory file strings
@@ -17,4 +18,8 @@ export function createZip(files: Record<string, string>, dest: string) {
             }
         });
     });
+}
+
+export function expectEql<T>(actual: T, expected: T) {
+    expect(actual).to.eql(expected);
 }

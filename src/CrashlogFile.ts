@@ -1,7 +1,10 @@
-import type { Range } from 'brighterscript';
+import type { FileReference } from './interfaces';
+import type { Runner } from './Runner';
 import { util as bscUtil } from 'brighterscript';
+
 export class CrashlogFile {
     public constructor(
+        public runner: Runner,
         /**
          * The path to the original source file
          */
@@ -28,6 +31,23 @@ export class CrashlogFile {
         }
     }
 
+    /**
+     * Link every reference with its original location
+     */
+    public async process() {
+        await Promise.all(
+            this.references.map(x => this.linkReference(x))
+        );
+    }
+
+    private async linkReference(reference: FileReference) {
+        const locations = await this.runner.getOriginalLocations(reference.pkgLocation);
+        if (locations?.[0]) {
+            //for now, just use the first location found
+            reference.srcLocation = locations[0];
+        }
+    }
+
     private findPkgPaths(line: string, lineIndex: number) {
         const pattern = /(\w+:\/.*?)\((\d+)\)/g;
         let match: RegExpExecArray | null;
@@ -35,24 +55,12 @@ export class CrashlogFile {
         while (match = pattern.exec(line)) {
             this.references.push({
                 range: bscUtil.createRange(lineIndex, match.index, lineIndex, match.index + match[0].length),
-                pkgPath: match[1],
-                line: parseInt(match[2])
+                pkgLocation: {
+                    path: match[1],
+                    line: parseInt(match[2]),
+                    character: 0
+                }
             });
         }
     }
-}
-
-interface FileReference {
-    /**
-     * The location in the log where this file reference is located
-     */
-    range: Range;
-    /**
-     * The pkgPath referenced by this entry
-     */
-    pkgPath: string;
-    /**
-     * The line of source code referenced by this entry
-     */
-    line: number;
 }

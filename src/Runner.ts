@@ -2,6 +2,7 @@ import * as extract from 'extract-zip';
 import * as fsExtra from 'fs-extra';
 import * as globAll from 'glob-all';
 import * as path from 'path';
+import type { Location, RunnerOptions } from './interfaces';
 import { CrashlogFile } from './CrashlogFile';
 import { Project } from './Project';
 import { util } from './util';
@@ -24,10 +25,16 @@ export class Runner {
         //clear the outDir
         fsExtra.emptydirSync(this.outDir);
 
-        await Promise.all([
-            this.loadCrashlogs(),
-            this.loadProjects()
-        ]);
+        //load all projects
+        await this.loadProjects();
+
+        //load the crashlogs
+        await this.loadCrashlogs();
+
+        //perform a lookup of every crashlog file path
+        await Promise.all(
+            this.crashlogFiles.map(x => x.process())
+        );
     }
 
     private crashlogFiles: CrashlogFile[] = [];
@@ -64,7 +71,7 @@ export class Runner {
                 logs.push(...unzippedFiles);
             } else {
                 this.crashlogFiles.push(
-                    new CrashlogFile(logPath)
+                    new CrashlogFile(this, logPath)
                 );
             }
         }
@@ -79,28 +86,14 @@ export class Runner {
             this.projects.map(x => x.load())
         );
     }
-}
-
-export interface RunnerOptions {
-    /**
-     * An array of globs used to find crash logs
-     */
-    crashlogs: string[];
 
     /**
-     * Paths to source code folders, optionally prefixed with sg_component_libs_provided.
-     * For example: ["C:/projects/mainApp", "./complib1", "complib2:C:/projects/complib2"]
+     * Convert a pkg location into source location(s)
      */
-    projects: string[];
-
-    /**
-     * Overrides the current working directory
-     */
-    cwd?: string;
-
-    /**
-     * the root output directory.
-     * @default "dest"
-     */
-    outDir?: string;
+    public async getOriginalLocations(location: Location) {
+        const locations = await Promise.all(
+            this.projects.map(x => x.getOriginalLocation(location))
+        );
+        return locations.filter(x => !!x);
+    }
 }

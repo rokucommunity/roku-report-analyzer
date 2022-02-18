@@ -1,6 +1,9 @@
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
+import { Cache } from './Cache';
+import type { Location } from './interfaces';
 import type { Runner } from './Runner';
+import { SourceMapConsumer } from 'source-map';
 import { standardizePath as s } from 'brighterscript';
 
 export class Project {
@@ -15,8 +18,47 @@ export class Project {
 
     public async load() {
         await this.loadComlibNameFromManifest();
-        if (!this.prefix) {
+        if (this.prefix) {
+            this.prefixRegexp = new RegExp('^' + this.prefix);
+        } else {
             this.prefix = 'pkg';
+        }
+    }
+
+    private prefixRegexp = /^pkg:/;
+
+    /**
+     * Get a sourcemap for the specified file, or undefined if not found
+     */
+    private getSourcemapConsumer(pkgPath: string) {
+        return this.cache.getOrAdd(pkgPath, async () => {
+            const destPath = pkgPath.replace(this.prefixRegexp, this.srcPath) + '.map';
+            try {
+                if (await fsExtra.pathExists(destPath)) {
+                    const map = (await fsExtra.readFile(destPath)).toString();
+                    return await new SourceMapConsumer(JSON.parse(map));
+                }
+            } finally { }
+        });
+    }
+    private cache = new Cache<string, Promise<SourceMapConsumer | undefined>>();
+
+    public async getOriginalLocation(location: Location): Promise<Location | undefined> {
+        const consumer = await this.getSourcemapConsumer(location.path);
+        if (consumer) {
+            const position = consumer.originalPositionFor({
+                //source-map needs 1-based line number
+                line: location.line + 1,
+                //zero-based column number
+                column: location.character ?? 0
+            });
+            if (typeof position?.line === 'number' && typeof position?.column === 'number' && typeof position?.source === 'string') {
+                return {
+                    line: position.line - 1,
+                    character: position.column,
+                    path: position.source
+                };
+            }
         }
     }
 
