@@ -4,7 +4,8 @@ import { util as bscUtil, standardizePath as s } from 'brighterscript';
 import { CrashlogFile } from './CrashlogFile';
 import { Runner } from './Runner';
 import type { RunnerOptions } from './interfaces';
-import { expectEql } from './testUtils.spec';
+import { expect } from 'chai';
+import { expectContainSubset } from './testUtils.spec';
 import { util } from './util';
 
 describe('CrashlogFile', () => {
@@ -35,6 +36,17 @@ describe('CrashlogFile', () => {
             file.parse(' ');
         });
 
+        it('computes absolute line index', () => {
+            file.parse(
+                '_____ \npkg:/source/common.brs(1)\n____ pkg:/source/common.brs(2)'
+            );
+            expectContainSubset(file.references, [{
+                offset: 7
+            }, {
+                offset: 38
+            }]);
+        });
+
         it('finds all pkg paths', () => {
             file.parse(`
                 Type Mismatch. Unable to cast "Invalid" to "String". (runtime error &h18) in pkg:/source/common.brs(4648)
@@ -42,15 +54,15 @@ describe('CrashlogFile', () => {
                 #1  Function geterroreventanalyticsdata(category As String, subcategory As String, page As String, errorenum As String, servercode As String, message As String, api As String) As Object
                 file/line: pkg:/source/common.brs(4648)
                 #0  Function onbulkdeleterecordingstatuschange(event As Object) As Void
-                file/line: pkg:/components/Screens/Recordings/RecordingsScreen.brs(1100)
+                file/line: pkg:/components/Screens/Recordings/RecordingsScreen.brs(1101)
                 Local Variables:
             `);
-            expectEql(file.references, [{
+            expectContainSubset(file.references, [{
                 range: bscUtil.createRange(1, 93, 1, 121),
-                pkgLocation: util.createLocation('pkg:/source/common.brs', 4648, 0)
+                pkgLocation: util.createLocation('pkg:/source/common.brs', 4647, 0)
             }, {
                 range: bscUtil.createRange(4, 27, 4, 55),
-                pkgLocation: util.createLocation('pkg:/source/common.brs', 4648, 0)
+                pkgLocation: util.createLocation('pkg:/source/common.brs', 4647, 0)
             }, {
                 range: bscUtil.createRange(6, 27, 6, 88),
                 pkgLocation: util.createLocation('pkg:/components/Screens/Recordings/RecordingsScreen.brs', 1100, 0)
@@ -59,7 +71,7 @@ describe('CrashlogFile', () => {
 
         it('finds complib paths', () => {
             file.parse(`
-                    1 Function evaluateautohidecontrols(event As Object) As Void; pkg:   file/line: complib1:/components/Screens/PlaybackUltra/PlaybackUltra.brs(1160)
+                    1 Function evaluateautohidecontrols(event As Object) As Void; pkg:   file/line: complib1:/components/Screens/PlaybackUltra/PlaybackUltra.brs(1161)
                     ____________________________________________________
 
                     count       Hardware Platform
@@ -76,10 +88,10 @@ describe('CrashlogFile', () => {
                     -------------------------------------------------
 
 
-                Execution timeout (runtime error &h23) in complib2:/components/Screens/PlaybackUltra/PlaybackUltra.brs(1159)
+                Execution timeout (runtime error &h23) in complib2:/components/Screens/PlaybackUltra/PlaybackUltra.brs(1151)
                 Backtrace:
                 #0  Function evaluateautohidecontrols(event As Object) As Void
-                    file/line: vendorcomplib:/components/Screens/PlaybackUltra/PlaybackUltra.brs(1160)
+                    file/line: vendorcomplib:/components/Screens/PlaybackUltra/PlaybackUltra.brs(1148)
                 Local Variables:
                 event            roSGNodeEvent refcnt=2
                 global           Interface:ifGlobal
@@ -88,16 +100,30 @@ describe('CrashlogFile', () => {
                 currentstate     <uninitialized>
                 threshold        <uninitialized>
             `);
-            expectEql(file.references, [{
+            expectContainSubset(file.references, [{
                 range: bscUtil.createRange(1, 100, 1, 166),
                 pkgLocation: util.createLocation('complib1:/components/Screens/PlaybackUltra/PlaybackUltra.brs', 1160, 0)
             }, {
                 range: bscUtil.createRange(18, 58, 18, 124),
-                pkgLocation: util.createLocation('complib2:/components/Screens/PlaybackUltra/PlaybackUltra.brs', 1159, 0)
+                pkgLocation: util.createLocation('complib2:/components/Screens/PlaybackUltra/PlaybackUltra.brs', 1150, 0)
             }, {
                 range: bscUtil.createRange(21, 31, 21, 102),
-                pkgLocation: util.createLocation('vendorcomplib:/components/Screens/PlaybackUltra/PlaybackUltra.brs', 1160, 0)
+                pkgLocation: util.createLocation('vendorcomplib:/components/Screens/PlaybackUltra/PlaybackUltra.brs', 1147, 0)
             }]);
+        });
+    });
+
+    describe('process', () => {
+        it('keeps running when no sourcemaps were found', async () => {
+            file.parse(`
+                pkg:/source/main.brs(100)
+            `);
+            await file.process();
+            expect(file.references[0].srcLocation).not.to.exist;
+        });
+
+        it('loads sourcemap from disk', async () => {
+
         });
     });
 });

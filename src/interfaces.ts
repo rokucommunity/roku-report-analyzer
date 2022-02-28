@@ -1,4 +1,5 @@
 import type { Range } from 'brighterscript';
+import type { Runner } from './Runner';
 
 export interface RunnerOptions {
     /**
@@ -29,6 +30,14 @@ export interface FileReference {
      * The location in the log where this file reference is located
      */
     range: Range;
+    /**
+     * The 0-based char index in the entire file where the match starts
+     */
+    offset: number;
+    /**
+     * The length of the current reference in the log file
+     */
+    length: number;
     pkgLocation: Location;
     srcLocation?: Location;
 }
@@ -37,4 +46,8 @@ export interface Location {
     path: string;
     line: number;
     character: number;
+}
+
+export interface Reporter {
+    generate(runner: Runner): any | void;
 }

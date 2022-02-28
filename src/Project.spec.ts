@@ -1,6 +1,6 @@
-
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
+
 import { Project } from './Project';
 import { Runner } from './Runner';
 import type { RunnerOptions } from './interfaces';

@@ -1,5 +1,6 @@
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
+
 import { Cache } from './Cache';
 import type { Location } from './interfaces';
 import type { Runner } from './Runner';
@@ -17,7 +18,7 @@ export class Project {
     public prefix: string | undefined = undefined;
 
     public async load() {
-        await this.loadComlibNameFromManifest();
+        await this.loadComplibNameFromManifest();
         if (this.prefix) {
             this.prefixRegexp = new RegExp('^' + this.prefix);
         } else {
@@ -30,9 +31,8 @@ export class Project {
     /**
      * Get a sourcemap for the specified file, or undefined if not found
      */
-    private getSourcemapConsumer(pkgPath: string) {
-        return this.cache.getOrAdd(pkgPath, async () => {
-            const destPath = pkgPath.replace(this.prefixRegexp, this.srcPath) + '.map';
+    private getSourcemapConsumer(destPath: string) {
+        return this.cache.getOrAdd(destPath, async () => {
             try {
                 if (await fsExtra.pathExists(destPath)) {
                     const map = (await fsExtra.readFile(destPath)).toString();
@@ -44,7 +44,9 @@ export class Project {
     private cache = new Cache<string, Promise<SourceMapConsumer | undefined>>();
 
     public async getOriginalLocation(location: Location): Promise<Location | undefined> {
-        const consumer = await this.getSourcemapConsumer(location.path);
+        const destPath = location.path.replace(this.prefixRegexp, this.srcPath);
+        const destMapPath = destPath + '.map';
+        const consumer = await this.getSourcemapConsumer(destMapPath);
         if (consumer) {
             const position = consumer.originalPositionFor({
                 //source-map needs 1-based line number
@@ -52,17 +54,28 @@ export class Project {
                 //zero-based column number
                 column: location.character ?? 0
             });
+            const destMapDir = path.dirname(destMapPath);
+
             if (typeof position?.line === 'number' && typeof position?.column === 'number' && typeof position?.source === 'string') {
                 return {
+                    //we receive 1-based line num, but need to store 0-based
                     line: position.line - 1,
                     character: position.column,
-                    path: position.source
+                    path: path.resolve(destMapDir, position.source)
                 };
             }
+
+            //if there is no source map, and the file exists in dest, then assume the line numbers are one-to-one between dest and src
+        } else if (await fsExtra.pathExists(destPath)) {
+            return {
+                line: location.line,
+                character: location.character,
+                path: destPath
+            };
         }
     }
 
-    private async loadComlibNameFromManifest() {
+    private async loadComplibNameFromManifest() {
         const manifestPath = path.join(this.srcPath, 'manifest');
         if (!this.prefix && await fsExtra.pathExists(manifestPath)) {
             //load the manifest and check for
