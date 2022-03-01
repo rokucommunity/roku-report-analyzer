@@ -49,5 +49,5 @@ export interface Location {
 }
 
 export interface Reporter {
-    generate(runner: Runner): any | void;
+    generate(runner: Runner): any;
 }
