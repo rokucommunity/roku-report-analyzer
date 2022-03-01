@@ -56,7 +56,7 @@ export class Project {
             });
             const destMapDir = path.dirname(destMapPath);
 
-            if (typeof position?.line === 'number' && typeof position?.column === 'number' && typeof position?.source === 'string') {
+            if (position && typeof position.line === 'number' && typeof position.column === 'number' && typeof position.source === 'string') {
                 return {
                     //we receive 1-based line num, but need to store 0-based
                     line: position.line - 1,

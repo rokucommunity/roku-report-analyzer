@@ -31,6 +31,41 @@ describe('Runner', () => {
         fsExtra.outputFileSync(path.resolve(runner.cwd, logfilePath), contents);
     }
 
+    it('uses process.cwd() when not specified', () => {
+        runner = new Runner({
+            projects: [projectDir],
+            crashlogs: [],
+            cwd: undefined
+        });
+        expect(runner.cwd).to.eql(process.cwd());
+    });
+
+    it('defaults outDir to "dist"', () => {
+        expect(runner.outDir).to.eql(
+            path.join(runner.cwd, 'dist')
+        );
+    });
+
+    it('uses overridden outDir', () => {
+        runner = new Runner({
+            projects: [projectDir],
+            crashlogs: [],
+            outDir: 'out'
+        });
+        expect(runner.outDir).to.eql(
+            path.join(runner.cwd, 'out')
+        );
+    });
+
+    it(`avoids crash for null projects array`, async () => {
+        runner = new Runner({
+            projects: undefined as unknown as [],
+            crashlogs: []
+        });
+        //shouldn't crash
+        await runner['loadProjects']();
+    });
+
     it('finds text log files', async () => {
         addLogfile('log1.text', '');
         await runner.run();

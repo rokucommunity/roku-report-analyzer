@@ -41,7 +41,7 @@ export class StandardReporter implements Reporter {
                 contents =
                     contents.substring(0, ref.offset) +
                     s`${ref.srcLocation.path}` +
-                    `(${ref.srcLocation?.line + 1})` +
+                    `(${ref.srcLocation.line + 1})` +
                     contents.substring(ref.offset + ref.length);
             }
         }

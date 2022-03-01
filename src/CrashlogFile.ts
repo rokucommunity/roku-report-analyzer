@@ -94,7 +94,7 @@ export class CrashlogFile {
      * Look up the source location for each reference (using sourcemaps)
      */
     private async linkReference(reference: FileReference) {
-        const locations = await this.runner.getOriginalLocations(reference.pkgLocation);
+        const locations = await this.runner.getOriginalLocations(reference?.pkgLocation);
         if (locations?.[0]) {
             //for now, just use the first location found
             reference.srcLocation = locations[0];

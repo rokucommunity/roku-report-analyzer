@@ -4,9 +4,11 @@ import { util as bscUtil, standardizePath as s } from 'brighterscript';
 import { CrashlogFile } from './CrashlogFile';
 import { Runner } from './Runner';
 import type { RunnerOptions } from './interfaces';
+import { createSandbox } from 'sinon';
 import { expect } from 'chai';
 import { expectContainSubset } from './testUtils.spec';
 import { util } from './util';
+const sinon = createSandbox();
 
 describe('CrashlogFile', () => {
     const tempDir = path.join(process.cwd(), '.tmp');
@@ -15,6 +17,7 @@ describe('CrashlogFile', () => {
     let runner: Runner;
     let runnerOptions: RunnerOptions;
     beforeEach(() => {
+        sinon.restore();
         fsExtra.emptydirSync(tempDir);
         runnerOptions = {
             cwd: tempDir,
@@ -25,7 +28,28 @@ describe('CrashlogFile', () => {
         file = new CrashlogFile(runner, filePath);
     });
     afterEach(() => {
+        sinon.restore();
         fsExtra.emptydirSync(tempDir);
+    });
+
+    it('does not crash with invalid log file name and folder', () => {
+        file = new CrashlogFile(runner, 'not/correct/file/path.text');
+        expect(file.destPath).to.be.undefined;
+    });
+
+    it('does not crash with invalid folder name', () => {
+        file = new CrashlogFile(runner, 'not/correct/file/FirstApp_A50');
+        expect(file.destPath).to.be.undefined;
+    });
+
+    describe('linkReference', () => {
+        it('does not crash when zero locations were found', async () => {
+            sinon.stub(runner, 'getOriginalLocations').returns(Promise.resolve(undefined) as any);
+            //should not crash
+            expect(
+                await file['linkReference'](undefined as any)
+            ).not.to.exist;
+        });
     });
 
     describe('parse', () => {
@@ -120,10 +144,6 @@ describe('CrashlogFile', () => {
             `);
             await file.process();
             expect(file.references[0].srcLocation).not.to.exist;
-        });
-
-        it('loads sourcemap from disk', async () => {
-
         });
     });
 });
