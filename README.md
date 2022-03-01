@@ -28,6 +28,7 @@ npx rra ./crashlogs/AwesomeRokuApp_A50.zip --projects ./projects/AwesomeRokuApp
 rra supports globs for finding crashlogs, and supports zips as well as unzipped folders. You can specify as many globs as you wish.
 ```bash
 npx rra ./app1/crashlogs/**/*.text ../downloads/**/*.text ./crashZips/*.zip --projects ./projects/AwesomeRokuApp
+```
 
 ### Multiple projects
 Perhaps your project is assembled from multiple source projects
