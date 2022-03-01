@@ -1,6 +1,6 @@
 {
   "name": "roku-report-analyzer",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Converts production file paths into source code paths based on sourcemaps",
   "license": "MIT",
   "author": "RokuCommunity",
