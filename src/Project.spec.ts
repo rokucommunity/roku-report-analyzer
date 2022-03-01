@@ -37,4 +37,28 @@ describe('Project', () => {
         expect(project.srcPath).to.eql(s`${tempDir}\\videoApp`);
         expect(project.prefix).to.eql('complib1');
     });
+
+    it('loads complib name from manifest when found', async () => {
+        fsExtra.outputFileSync(`${tempDir}/videoApp/manifest`, `
+            sg_component_libs_provided=mycomplib
+        `);
+        project = new Project(runner, `${tempDir}\\videoApp`);
+        await project.load();
+        expect(project.prefix).to.equal('mycomplib');
+    });
+
+    it('overrides complib name when specified via command line', async () => {
+        fsExtra.outputFileSync(`${tempDir}/videoApp/manifest`, `
+            sg_component_libs_provided=mycomplib
+        `);
+        project = new Project(runner, `overrideprefix:${tempDir}\\videoApp`);
+        await project.load();
+        expect(project.prefix).to.equal('overrideprefix');
+    });
+
+    it('defaults to pkg when no manifest found and no prefix provided', async () => {
+        project = new Project(runner, `${tempDir}\\videoApp`);
+        await project.load();
+        expect(project.prefix).to.eql('pkg');
+    });
 });
