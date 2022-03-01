@@ -46,6 +46,7 @@ npx rra ./crashlogs/AwesomeRokuApp_A50.zip --projects pkg:./projects/AwesomeRoku
 You can override the current working directory like this:
 ```bash
 npx rra --cwd C:/wherever ./crashlogs/**/*.zip --projects ./projects/CoolApp
+```
 
 ### Help
 Run the `--help` command to view all the available options
