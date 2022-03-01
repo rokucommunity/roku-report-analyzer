@@ -1,12 +1,12 @@
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
+import type { NullableMappedPosition } from 'source-map';
 import { Project } from './Project';
 import { Runner } from './Runner';
 import type { RunnerOptions } from './interfaces';
 import { createSandbox } from 'sinon';
 import { expect } from 'chai';
 import { standardizePath as s } from 'brighterscript';
-import { NullableMappedPosition } from 'source-map';
 const sinon = createSandbox();
 
 const tempDir = path.join(process.cwd(), '.tmp');
