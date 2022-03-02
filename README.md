@@ -1,13 +1,15 @@
 # roku-report-analyzer
 Leverage sourcemaps to translate pkg paths from Roku crash logs into original file paths
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![NPM Version](https://badge.fury.io/js/roku-report-analyzer.svg?style=flat)](https://npmjs.org/package/roku-report-analyzer)
 [![build](https://img.shields.io/github/workflow/status/rokucommunity/roku-report-analyzer/build.svg?logo=github)](https://github.com/rokucommunity/roku-report-analyzer/actions?query=workflow%3Abuild)
 [![Coverage Status](https://coveralls.io/repos/github/rokucommunity/roku-report-analyzer/badge.svg?branch=master)](https://coveralls.io/github/rokucommunity/roku-report-analyzer?branch=master)
+[![Downloads](https://img.shields.io/npm/dm/roku-report-analyzer.svg?sanitize=true)](https://npmcharts.com/compare/roku-report-analyzer?minimal=true)
+[![npm version](https://img.shields.io/npm/v/roku-report-analyzer.svg)](https://www.npmjs.com/package/roku-report-analyzer)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![asdf](https://img.shields.io/badge/Slack-4A154B?logo=slack&label=Chat)](https://join.slack.com/t/rokudevelopers/shared_invite/zt-4vw7rg6v-NH46oY7hTktpRIBM_zGvwA)
 
 ## Description
-The purpose of roku-report-analyzer (rra) is to standardize the roku crash log reports that get emailed to you directly from roku on a regular basis. Those crashlogs are normally packaged include the file paths in the format `pkg:/source/main.brs(10)` or `yourcomplib:/components/SomeComponent.xml(12)`.
+The purpose of roku-report-analyzer (rra) is to standardize the roku crash log reports that get emailed to you directly from roku on a regular basis. Those crashlogs normall include the file paths in the format `pkg:/source/main.brs(10)` or `yourcomplib:/components/SomeComponent.xml(12)`.
 ### Goals
 - translate device locations (`pkg:/source/main.brs(10)`) into source code locations (`C:/projects/YourRokuApp/src/source/main.brs(10)`).
 - leverage source maps for transpiled projects (such as those built by [BrighterScript](https://github.com/RokuCommunity/brighterscript))
