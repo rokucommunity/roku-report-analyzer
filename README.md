@@ -1,6 +1,11 @@
 # roku-report-analyzer
 Leverage sourcemaps to translate pkg paths from Roku crash logs into original file paths
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![NPM Version](https://badge.fury.io/js/roku-report-analyzer.svg?style=flat)](https://npmjs.org/package/roku-report-analyzer)
+[![build](https://img.shields.io/github/workflow/status/rokucommunity/roku-report-analyzer/build.svg?logo=github)](https://github.com/rokucommunity/roku-report-analyzer/actions?query=workflow%3Abuild)
+[![Coverage Status](https://coveralls.io/repos/github/rokucommunity/roku-report-analyzer/badge.svg?branch=master)](https://coveralls.io/github/rokucommunity/roku-report-analyzer?branch=master)
+
 ## Description
 The purpose of roku-report-analyzer (rra) is to standardize the roku crash log reports that get emailed to you directly from roku on a regular basis. Those crashlogs are normally packaged include the file paths in the format `pkg:/source/main.brs(10)` or `yourcomplib:/components/SomeComponent.xml(12)`.
 ### Goals
