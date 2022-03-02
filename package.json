@@ -1,11 +1,18 @@
 {
   "name": "roku-report-analyzer",
   "version": "0.0.1",
-  "description": "Converts production file paths into source code paths based on sourcemaps",
+  "description": "Analyze roku crashlogs and leverage sourcemaps to translate pkg paths into original file paths",
   "license": "MIT",
   "author": "RokuCommunity",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "bsc": "dist/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rokucommunity/roku-report-analyzer"
+  },
   "scripts": {
     "preversion": "npm run build && npm run test && npm run lint",
     "build": "rimraf out && tsc",
