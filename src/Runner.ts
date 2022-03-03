@@ -14,6 +14,13 @@ export class Runner {
     public constructor(
         public options: RunnerOptions
     ) {
+        this.validateOptions();
+    }
+
+    private validateOptions() {
+        if (!Array.isArray(this.options.crashlogs) || this.options.crashlogs?.length < 1) {
+            throw new Error('crashlogs list may not be empty');
+        }
     }
 
     public get cwd() {
@@ -22,6 +29,10 @@ export class Runner {
 
     public get outDir() {
         return path.join(this.cwd, this.options.outDir ?? 'dist');
+    }
+
+    private get tempDir() {
+        return path.join(this.outDir, '.tmp');
     }
 
     public reporters: Reporter[] = [
@@ -47,6 +58,9 @@ export class Runner {
         await Promise.all(
             this.reporters.map(x => x.generate(this))
         );
+
+        //delete the tmp folder
+        await fsExtra.remove(this.tempDir);
     }
 
     public files: CrashlogFile[] = [];
@@ -69,7 +83,7 @@ export class Runner {
         for (const logPath of logs) {
             //if this logPath is a zip archive, unzip it and add all the files
             if (logPath.toLowerCase().endsWith('.zip')) {
-                const dest = path.join(this.outDir, path.basename(logPath));
+                const dest = path.join(this.tempDir, path.basename(logPath));
                 //extract the zip and then process all the found files
                 await extract(logPath, {
                     dir: dest
