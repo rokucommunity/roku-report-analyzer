@@ -1,3 +1,4 @@
+import type { LogLevel } from '@rokucommunity/logger';
 import type { Range } from 'brighterscript';
 import type { Runner } from './Runner';
 
@@ -23,6 +24,11 @@ export interface RunnerOptions {
      * @default "dest"
      */
     outDir?: string;
+
+    /**
+     * What level of logging should be done during this run
+     */
+    logLevel?: LogLevel;
 }
 
 export interface FileReference {

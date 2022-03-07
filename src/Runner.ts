@@ -2,20 +2,23 @@ import * as extract from 'extract-zip';
 import * as fsExtra from 'fs-extra';
 import * as globAll from 'glob-all';
 import * as path from 'path';
-
 import type { Location, Reporter, RunnerOptions } from './interfaces';
-
 import { CrashlogFile } from './CrashlogFile';
+import type { Logger } from '@rokucommunity/logger';
 import { Project } from './Project';
 import { StandardReporter } from './reporters/StandardReporter';
+import logger from '@rokucommunity/logger';
 import { util } from './util';
 
 export class Runner {
     public constructor(
         public options: RunnerOptions
     ) {
+        this.logger = logger.createLogger({ logLevel: this.options.logLevel });
         this.validateOptions();
     }
+
+    private logger: Logger;
 
     private validateOptions() {
         if (!Array.isArray(this.options.crashlogs) || this.options.crashlogs?.length < 1) {
@@ -75,6 +78,7 @@ export class Runner {
      * Load all provided crash logs
      */
     private async loadCrashlogs() {
+        this.logger.info('loading crashlogs', { globs: this.options.crashlogs, cwd: this.cwd });
         const logs = globAll.sync(this.options.crashlogs, {
             absolute: true,
             cwd: this.cwd
@@ -102,6 +106,8 @@ export class Runner {
                 );
             }
         }
+        logger.log(`found ${this.files.length} crashlogs`);
+        logger.info({ crashlogs: this.files.map(x => x.srcPath) });
 
         //load all file contents
         await Promise.all(this.files.map(async file => {

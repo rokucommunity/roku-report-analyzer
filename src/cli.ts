@@ -19,6 +19,12 @@ import { Runner } from './Runner';
                     description: 'The directory where the processed logs should be written',
                     defaultDescription: './dest'
                 })
+                .option('log-level', {
+                    type: 'string',
+                    alias: ['loglevel'],
+                    defaultDescription: '"log"',
+                    description: 'The log level. Value can be "error", "warn", "log", "info", "debug".'
+                })
                 .options('cwd', {
                     type: 'string',
                     description: 'The override the current working directory for the tool'
