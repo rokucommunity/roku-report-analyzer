@@ -76,7 +76,7 @@ export class Project {
     }
 
     private async loadComplibNameFromManifest() {
-        const manifestPath = path.join(this.srcPath, 'manifest');
+        const manifestPath = s`${path.join(this.srcPath, 'manifest')}`;
         if (!this.prefix && await fsExtra.pathExists(manifestPath)) {
             //load the manifest and check for
             const manifest = (await fsExtra.readFile(manifestPath)).toString();

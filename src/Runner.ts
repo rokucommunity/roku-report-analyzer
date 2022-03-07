@@ -8,6 +8,7 @@ import type { Logger } from '@rokucommunity/logger';
 import { Project } from './Project';
 import { StandardReporter } from './reporters/StandardReporter';
 import logger from '@rokucommunity/logger';
+import { standardizePath as s } from 'brighterscript';
 import { util } from './util';
 
 export class Runner {
@@ -18,7 +19,7 @@ export class Runner {
         this.validateOptions();
     }
 
-    private logger: Logger;
+    public logger: Logger;
 
     private validateOptions() {
         if (!Array.isArray(this.options.crashlogs) || this.options.crashlogs?.length < 1) {
@@ -31,11 +32,11 @@ export class Runner {
     }
 
     public get outDir() {
-        return path.join(this.cwd, this.options.outDir ?? 'dist');
+        return s`${path.join(this.cwd, this.options.outDir ?? 'dist')}`;
     }
 
     private get tempDir() {
-        return path.join(this.outDir, '.tmp');
+        return s`${path.join(this.outDir, '.tmp')}`;
     }
 
     public reporters: Reporter[] = [
@@ -53,17 +54,20 @@ export class Runner {
         await this.loadCrashlogs();
 
         //perform a lookup of every crashlog file path
+        this.logger.log('parsing crashlogs');
         await Promise.all(
             this.files.map(x => x.process())
         );
 
         //execute every reporter
+        this.logger.log('Generating results');
         await Promise.all(
             this.reporters.map(x => x.generate(this))
         );
 
         //delete the tmp folder
         await fsExtra.remove(this.tempDir);
+        this.logger.log('Done');
     }
 
     public files: CrashlogFile[] = [];
@@ -78,7 +82,8 @@ export class Runner {
      * Load all provided crash logs
      */
     private async loadCrashlogs() {
-        this.logger.info('loading crashlogs', { globs: this.options.crashlogs, cwd: this.cwd });
+        this.logger.log('Searching for crashlogs');
+        this.logger.info({ globs: this.options.crashlogs, cwd: this.cwd });
         const logs = globAll.sync(this.options.crashlogs, {
             absolute: true,
             cwd: this.cwd
@@ -87,7 +92,7 @@ export class Runner {
         for (const logPath of logs) {
             //if this logPath is a zip archive, unzip it and add all the files
             if (logPath.toLowerCase().endsWith('.zip')) {
-                const dest = path.join(this.tempDir, path.basename(logPath));
+                const dest = s`${path.join(this.tempDir, path.basename(logPath))}`;
                 //extract the zip and then process all the found files
                 await extract(logPath, {
                     dir: dest

@@ -16,8 +16,8 @@
   },
   "scripts": {
     "preversion": "npm run build && npm run test && npm run lint",
-    "build": "rimraf out && tsc",
-    "watch": "rimraf out && tsc --watch",
+    "build": "rimraf dist && tsc",
+    "watch": "rimraf dist && tsc --watch",
     "lint": "eslint \"src/**\"",
     "format": "tsfmt -r",
     "test": "nyc mocha",
