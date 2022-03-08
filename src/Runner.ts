@@ -22,7 +22,7 @@ export class Runner {
     public logger: Logger;
 
     private validateOptions() {
-        if (!Array.isArray(this.options.crashlogs) || this.options.crashlogs?.length < 1) {
+        if (!Array.isArray(this.options.crashlogs) || this.options.crashlogs.length < 1) {
             throw new Error('crashlogs list may not be empty');
         }
     }

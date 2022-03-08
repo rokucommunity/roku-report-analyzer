@@ -1,6 +1,6 @@
 import * as fsExtra from 'fs-extra';
 import * as path from 'path';
-import type { FileReference, Reporter } from '../interfaces';
+import type { FileReference, Location, Reporter } from '../interfaces';
 import type { CrashlogFile } from '../CrashlogFile';
 import type { Runner } from '../Runner';
 import { standardizePath as s } from 'brighterscript';
@@ -37,7 +37,7 @@ export class StandardReporter implements Reporter {
             const destPath = s`${path.join(this.runner.outDir, file.destPath)}`;
             return fsExtra.outputFile(destPath, contents);
         } else {
-            console.error(`Could not compute destPath for "${file.srcPath}"`);
+            this.logger.error(`Could not compute destPath for "${file.srcPath}"`);
         }
     }
 
@@ -62,11 +62,13 @@ export class StandardReporter implements Reporter {
         this.runner.logger.info(file.destPath + ':', replaced.length, 'paths replaced,', notReplaced.length, 'paths not replaced');
         if (this.logger.isLogLevelEnabled('debug')) {
             for (const ref of replaced) {
-                this.logger.debug('replaced:', `\n\t${ref.pkgLocation.path}:${ref.pkgLocation.line + 1}`, '->', `\n\t${ref.srcLocation?.path}:${ref.srcLocation?.line ?? 0 + 1}:${ref.srcLocation?.character ?? 0 + 1}`);
+                const srcLocation = ref.srcLocation as unknown as Location;
+                this.logger.debug('replaced:', `\n\t${ref.pkgLocation.path}:${ref.pkgLocation.line + 1}`, '->', `\n\t${srcLocation.path}:${srcLocation.line + 1}:${srcLocation.character + 1}`);
             }
 
             for (const ref of notReplaced) {
-                this.logger.debug('not replaced:', `\n\t${ref.pkgLocation.path}:${ref.pkgLocation.line + 1}`, 'at', `\n\t${s`${path.join(this.runner.outDir, file.destPath ?? '')}`}:${ref.range.start.line + 1}:${ref.range.start.character + 1}`);
+                const destPath = file.destPath as unknown as string;
+                this.logger.debug('not replaced:', `\n\t${ref.pkgLocation.path}:${ref.pkgLocation.line + 1}`, 'at', `\n\t${s`${path.join(this.runner.outDir, destPath)}`}:${ref.range.start.line + 1}:${ref.range.start.character + 1}`);
             }
         }
         this.stats.replaced += replaced.length;

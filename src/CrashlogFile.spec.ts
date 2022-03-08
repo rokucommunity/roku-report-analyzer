@@ -21,7 +21,7 @@ describe('CrashlogFile', () => {
         fsExtra.emptydirSync(tempDir);
         runnerOptions = {
             cwd: tempDir,
-            crashlogs: [],
+            crashlogs: ['crashlogs'],
             projects: []
         };
         runner = new Runner(runnerOptions);

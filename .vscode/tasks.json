@@ -9,7 +9,7 @@
             "command": "npm",
             "args": [
                 "run",
-                "test:nocover",
+                "test",
                 "--silent"
             ],
             "group": {

@@ -3,10 +3,13 @@ import * as path from 'path';
 import * as testUtils from './testUtils.spec';
 import { Runner } from './Runner';
 import { SourceNode } from 'source-map';
+import { createSandbox } from 'sinon';
 import { expect } from 'chai';
 import { expectFileEquals } from './testUtils.spec';
+import logger from '@rokucommunity/logger';
 import { standardizePath as s } from 'brighterscript';
 
+const sinon = createSandbox();
 const tempDir = path.join(process.cwd(), '.tmp');
 const projectDir = path.join(tempDir, 'project');
 const zipPath = s`${tempDir}/logs.zip`;
@@ -15,14 +18,17 @@ describe('Runner', () => {
     let runner: Runner;
 
     beforeEach(() => {
+        sinon.restore();
+        logger.logLevel = 'off';
         fsExtra.emptydirSync(tempDir);
         runner = new Runner({
             cwd: tempDir,
-            crashlogs: [],
+            crashlogs: ['crashlog'],
             projects: [projectDir]
         });
     });
     afterEach(() => {
+        sinon.restore();
         fsExtra.emptydirSync(tempDir);
     });
 
@@ -31,10 +37,20 @@ describe('Runner', () => {
         fsExtra.outputFileSync(path.resolve(runner.cwd, logfilePath), contents);
     }
 
+    it('throws on empty crashlogs array', () => {
+        expect(() => {
+            runner = new Runner({
+                cwd: tempDir,
+                crashlogs: [],
+                projects: [projectDir]
+            });
+        }).to.throw('crashlogs list may not be empty');
+    });
+
     it('uses process.cwd() when not specified', () => {
         runner = new Runner({
             projects: [projectDir],
-            crashlogs: [],
+            crashlogs: [''],
             cwd: undefined
         });
         expect(runner.cwd).to.eql(process.cwd());
@@ -42,25 +58,25 @@ describe('Runner', () => {
 
     it('defaults outDir to "dist"', () => {
         expect(runner.outDir).to.eql(
-            path.join(runner.cwd, 'dist')
+            s`${runner.cwd}/dist`
         );
     });
 
     it('uses overridden outDir', () => {
         runner = new Runner({
             projects: [projectDir],
-            crashlogs: [],
+            crashlogs: ['crashlog'],
             outDir: 'out'
         });
         expect(runner.outDir).to.eql(
-            path.join(runner.cwd, 'out')
+            s`${runner.cwd}/out`
         );
     });
 
     it(`avoids crash for null projects array`, async () => {
         runner = new Runner({
             projects: undefined as unknown as [],
-            crashlogs: []
+            crashlogs: ['crashlog']
         });
         //shouldn't crash
         await runner['loadProjects']();
@@ -87,9 +103,9 @@ describe('Runner', () => {
         expect(
             runner['files'].map(x => s`${x.srcPath}`)
         ).to.eql([
-            s`${runner.outDir}/logs.zip/log1.text`,
-            s`${runner.outDir}/logs.zip/subdir1/log2.txt`,
-            s`${runner.outDir}/logs.zip/subdir1/subdir2/log3.txt`
+            s`${runner.outDir}/.tmp/logs.zip/log1.text`,
+            s`${runner.outDir}/.tmp/logs.zip/subdir1/log2.txt`,
+            s`${runner.outDir}/.tmp/logs.zip/subdir1/subdir2/log3.txt`
         ]);
     });
 
@@ -168,6 +184,17 @@ describe('Runner', () => {
                 ${s`${tempDir}/src/source/main.bs(5)`}
                 ${s`${tempDir}/src/source/main.bs(10)`}
             `);
+        });
+
+        it('trigger logger.debug for replaced and notReplaced file entries in StandardReporter', async () => {
+            //this test is just to help with code coverage
+            logger.logLevel = 'debug';
+            runner.logger = logger;
+            sinon.stub(logger, 'write').callsFake(() => { });
+            addLogfile('OScrashes-2022-01-01/FirstApp_A47.text', 'pkg:/source/main.brs(1)');
+            addLogfile('OScrashes-2022-01-01/FirstApp_A48.text', 'libpkg:/source/main.brs(1)');
+            fsExtra.outputFileSync(`${projectDir}/source/main.brs`, '');
+            await runner.run();
         });
     });
 });
