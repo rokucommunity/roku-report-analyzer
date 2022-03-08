@@ -100,8 +100,6 @@ export class CrashlogFile {
         if (firstLocation) {
             //for now, just use the first location found
             reference.srcLocation = firstLocation;
-        } else {
-            const locations = await this.runner.getOriginalLocations(reference?.pkgLocation);
         }
     }
 
