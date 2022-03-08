@@ -19,14 +19,11 @@ export class Project {
 
     public async load() {
         await this.loadComplibNameFromManifest();
-        if (this.prefix) {
-            this.prefixRegexp = new RegExp('^' + this.prefix);
-        } else {
-            this.prefix = 'pkg';
-        }
+        this.prefix = this.prefix ?? 'pkg';
+        this.prefixRegexp = new RegExp('^' + this.prefix + ':', 'i');
     }
 
-    private prefixRegexp = /^pkg:/;
+    private prefixRegexp = /^pkg:/i;
 
     /**
      * Get a sourcemap for the specified file, or undefined if not found
@@ -44,7 +41,7 @@ export class Project {
     private cache = new Cache<string, Promise<SourceMapConsumer | undefined>>();
 
     public async getOriginalLocation(location: Location): Promise<Location | undefined> {
-        const destPath = location.path.replace(this.prefixRegexp, this.srcPath);
+        const destPath = s`${location.path.replace(this.prefixRegexp, this.srcPath)}`;
         const destMapPath = destPath + '.map';
         const consumer = await this.getSourcemapConsumer(destMapPath);
         if (consumer) {
@@ -61,7 +58,7 @@ export class Project {
                     //we receive 1-based line num, but need to store 0-based
                     line: position.line - 1,
                     character: position.column,
-                    path: path.resolve(destMapDir, position.source)
+                    path: s`${path.resolve(destMapDir, position.source)}`
                 };
             }
 
