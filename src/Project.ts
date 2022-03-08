@@ -49,7 +49,9 @@ export class Project {
                 //source-map needs 1-based line number
                 line: location.line + 1,
                 //zero-based column number
-                column: location.character ?? 0
+                column: location.character ?? 0,
+                //snap to the right item when possible
+                bias: SourceMapConsumer.LEAST_UPPER_BOUND
             });
             const destMapDir = path.dirname(destMapPath);
 
