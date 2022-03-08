@@ -49,13 +49,21 @@ If you use component libraries, those file paths will be prefixed by the `sg_com
 npx rra ./crashlogs/AwesomeRokuApp_A50.zip --projects pkg:./projects/AwesomeRokuApp yourcomplib:./projects/complib
 ```
 
+You can also use javascript string-style regular expressions to match multiple `sg_component_libs_provided` prefixes. For example:
+```bash
+npx rra ./crashlogs/AwesomeRokuApp_A50.zip --projects pkg:./projects/AwesomeRokuApp "(complib1|complib2):./projects/complib"
+```
+
 ### cwd
 You can override the current working directory like this:
 ```bash
 npx rra --cwd C:/wherever ./crashlogs/**/*.zip --projects ./projects/CoolApp
 ```
 
-### Help
+## Truncation
+Be aware, roku crashlogs will truncate some paths to a max of 120 characters. In this situation, we have no way to properly match paths back to their original locations. For this reason, we recommend that you limit all of your final paths to a maximum of 120 characters.
+
+# Help
 Run the `--help` command to view all the available options
 ```bash
 npx rra --help
