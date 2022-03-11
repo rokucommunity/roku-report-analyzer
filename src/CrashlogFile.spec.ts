@@ -4,6 +4,9 @@ import { util as bscUtil, standardizePath as s } from 'brighterscript';
 import { CrashlogFile } from './CrashlogFile';
 import { Runner } from './Runner';
 import type { RunnerOptions } from './interfaces';
+// TODO: How to remove this? No quickfix.
+// eslint-disable-next-line sort-imports
+import { ProductionStatus } from './interfaces';
 import { createSandbox } from 'sinon';
 import { expect } from 'chai';
 import { expectContainSubset } from './testUtils.spec';
@@ -134,6 +137,255 @@ describe('CrashlogFile', () => {
                 range: bscUtil.createRange(21, 31, 21, 102),
                 pkgLocation: util.createLocation('vendorcomplib:/components/Screens/PlaybackUltra/PlaybackUltra.brs', 1147, 0)
             }]);
+        });
+    });
+
+    describe('parseCrashes', () => {
+        describe('parses the hardware platform section', () => {
+            it('empty section', () => {
+                expect(file.parseHardwarePlatformSection([])).to.be.empty;
+                expect(file.parseHardwarePlatformSection(['', ''])).to.be.empty;
+                expect(file.parseHardwarePlatformSection(['', '', ''])).to.be.empty;
+            });
+
+            it('contains underscores', () => {
+                expectContainSubset(
+                    // eslint-disable-next-line no-tabs
+                    file.parseHardwarePlatformSection(['1	Amarillo_4K']),
+                    [
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: 'Roku Streaming Stick', codeName: 'Amarillo 1080', model: '3800X', productionStatus: ProductionStatus.Updatable }
+                        }
+                    ]
+                );
+            });
+
+            it('contains unknowns', () => {
+                expectContainSubset(
+                    // eslint-disable-next-line no-tabs
+                    file.parseHardwarePlatformSection(['1	SomeNonExisting CodeName']),
+                    [
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: 'Unknown', codeName: 'SomeNonExisting CodeName', model: 'Unknown', productionStatus: ProductionStatus.Unknown }
+                        }
+                    ]
+                );
+            });
+        });
+
+        describe('parses the application version section', () => {
+            it('empty section', () => {
+                expect(file.parseApplicationVersionSection([])).to.eql([]);
+                expect(file.parseApplicationVersionSection([''])).to.eql([]);
+                expect(file.parseApplicationVersionSection(['', ''])).to.eql([]);
+            });
+
+            it('normal versions', () => {
+                expect(file.parseApplicationVersionSection([
+                    /* eslint-disable no-tabs */
+                    '1	3.6.5',
+                    '2	0,0,1',
+                    '5	4;2;0',
+                    '3	2.6.590'
+                    /* eslint-enable */
+                ])).to.eql(
+                    [
+                        {
+                            count: 1,
+                            version: { major: 3, minor: 6, build: 5 },
+                            rawVersion: '3.6.5'
+                        },
+                        {
+                            count: 2,
+                            version: { major: 0, minor: 0, build: 1 },
+                            rawVersion: '0,0,1'
+                        },
+                        {
+                            count: 5,
+                            version: { major: 4, minor: 2, build: 0 },
+                            rawVersion: '4;2;0'
+                        },
+                        {
+                            count: 3,
+                            version: { major: 2, minor: 6, build: 590 },
+                            rawVersion: '2.6.590'
+                        }
+                    ]
+                );
+            });
+
+            it('unparsable versions', () => {
+                expect(file.parseApplicationVersionSection([
+                /* eslint-disable no-tabs */
+                    '1	3 6 5',
+                    '2	0	0	1',
+                    '5	ver4.2.0',
+                    '3	2.6.590-hotfix',
+                    '1	a.4.6'
+                /* eslint-enable */
+                ])).to.eql(
+                    [
+                        {
+                            count: 1,
+                            version: undefined,
+                            rawVersion: '3 6 5'
+                        },
+                        {
+                            count: 2,
+                            version: undefined,
+                            // eslint-disable-next-line no-tabs
+                            rawVersion: '0	0	1'
+                        },
+                        {
+                            count: 5,
+                            version: undefined,
+                            rawVersion: 'ver4.2.0'
+                        },
+                        {
+                            count: 3,
+                            version: undefined,
+                            rawVersion: '2.6.590-hotfix'
+                        },
+                        {
+                            count: 1,
+                            version: undefined,
+                            rawVersion: 'a.4.6'
+                        }
+                    ]
+                );
+            });
+        });
+
+        describe('parses the stack trace section', () => {
+
+        });
+
+        it('structures crashes correctly', () => {
+            /* eslint-disable no-tabs */
+            file.parse(`
+                18 	Function doupdatecaptionsmode() As Void; pkg:/components/playerscreen/PlayerScreen.brs(2941)
+                ____________________________________________________
+            
+                count		Hardware Platform
+                --------------------------------
+                        3	Malone
+                        3	Marlin
+                        2	Midland
+                        2	Nemo
+                        1	Tyler
+                        1	Amarillo_4K
+                        1	Littlefield
+                        1	Liberty
+                        1	Gilbert
+                        1	Longview
+                        1	Gilbert 4K
+                        1	Benjamin
+            
+            
+                count		Application Version
+                -----------------------------
+                        18	2.6.6
+            
+            
+                Stack Trace
+                -------------------------------------------------
+            
+            
+            Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941) 
+            Backtrace: 
+            #1  Function doupdatecaptionsmode() As Void 
+                file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941) 
+            #0  Function onfullscreenanimationfinished() As Void 
+                file/line: pkg:/components/playerscreen/PlayerScreen.brs(741) 
+            Local Variables: 
+            global           Interface:ifGlobal 
+            m                roAssociativeArray refcnt=3 count:67 
+            ccsetting        roString refcnt=1 val:"On"
+            `);
+            /* eslint-enable */
+
+            expectContainSubset(file.crashes[0], {
+                errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                stackTrace: [
+                    {
+                        scope: 'Function doupdatecaptionsmode() As Void',
+                        pkgLocation: {
+                            path: 'pkg:/components/playerscreen/PlayerScreen.brs',
+                            line: 2940,
+                            character: 0
+                        }
+                    },
+                    {
+                        scope: 'Function onfullscreenanimationfinished() As Void',
+                        pkgLocation: {
+                            path: 'pkg:/components/playerscreen/PlayerScreen.brs',
+                            line: 740,
+                            character: 0
+                        }
+                    }
+                ],
+                localVariables: [
+                    { name: 'global', metadata: 'Interface:ifGlobal' },
+                    { name: 'm', metadata: 'roAssociativeArray refcnt=3 count:67' },
+                    { name: 'ccsetting', metadata: 'roString refcnt=1 val:"On"' }
+                ],
+                applicationVersions: [{ count: 18, version: { major: 2, minor: 6, build: 6 } }],
+                count: {
+                    total: 18,
+                    details: [
+                        {
+                            count: 3,
+                            hardwarePlatform: { productName: '4K Roku TV', codeName: 'Malone', model: 'C000X', productionStatus: ProductionStatus.Current }
+                        },
+                        {
+                            count: 3,
+                            hardwarePlatform: { productName: 'Roku Express 4K', codeName: 'Marlin 4K', model: '3940X', productionStatus: ProductionStatus.Current }
+                        },
+                        {
+                            count: 2,
+                            hardwarePlatform: { productName: 'Roku TV', codeName: 'Midland', model: '8000X', productionStatus: ProductionStatus.Current }
+                        },
+                        {
+                            count: 2,
+                            hardwarePlatform: { productName: 'Roku Express', codeName: 'Nemo', model: '3930X', productionStatus: ProductionStatus.Current }
+                        },
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: 'Roku LT', codeName: 'Tyler', model: '2700X', productionStatus: ProductionStatus.Updatable }
+                        },
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: 'Roku Streaming Stick', codeName: 'Amarillo 1080', model: '3800X', productionStatus: ProductionStatus.Updatable }
+                        },
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: 'Roku Express', codeName: 'Littlefield', model: '3700X', productionStatus: ProductionStatus.Updatable }
+                        },
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: 'Roku TV', codeName: 'Liberty', model: '5000X', productionStatus: ProductionStatus.Updatable }
+                        },
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: 'Roku Express', codeName: 'Gilbert', model: '3900X', productionStatus: ProductionStatus.Updatable }
+                        },
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: '4K Roku TV', codeName: 'Longview', model: '7000X', productionStatus: ProductionStatus.Current }
+                        },
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: 'Roku Premiere', codeName: 'Gilbert 4K', model: '3920X', productionStatus: ProductionStatus.Updatable }
+                        },
+                        {
+                            count: 1,
+                            hardwarePlatform: { productName: 'Roku Ultra', codeName: 'Benjamin', model: '4800X', productionStatus: ProductionStatus.Current }
+                        }
+                    ]
+                }
+            });
         });
     });
 
