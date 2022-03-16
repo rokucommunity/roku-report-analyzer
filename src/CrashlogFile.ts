@@ -1,25 +1,10 @@
 import * as path from 'path';
-import type { ApplicationVersionCount, CrashReport, FileReference, LocalVariable, Location, RokuHardwarePlatform, StackTraceStep } from './interfaces';
+import type { ApplicationVersionCount, CrashReport, FileReference, LocalVariable, Location, StackTraceStep } from './interfaces';
 
 // eslint-disable-next-line sort-imports
 import { util as bscUtil, standardizePath } from 'brighterscript';
 import type { Position } from 'brighterscript';
 import type { Runner } from './Runner';
-import { util } from './util';
-
-// TODO: where to put this
-enum CrashReportSectionType {
-    HardwarePlatform = 'HardwarePlatform',
-    ApplicationVersion = 'ApplicationVersion',
-    StackTrace = 'StackTrace'
-}
-
-const HardwarePlatformHeaderRegex = /\s*count\s+Hardware Platform/;
-const ApplicationVersionHeaderRegex = /\s*count\s+Application Version/;
-const StackTraceHeaderRegex = /\s*Stack Trace/;
-
-const BacktraceScopeRegex = /#[0-9]+\s+./;
-const BacktracePkgLocationRegex = /file\/line:\s+./;
 
 export class CrashlogFile {
     public constructor(
@@ -139,18 +124,17 @@ export class CrashlogFile {
             let currentSection: CrashReportSectionType | undefined;
             let foundSectionHeader = false;
             for (const line of blockLines) {
-                if (HardwarePlatformHeaderRegex.test(line)) {
+                if (/\s*count\s+Hardware Platform/.test(line)) {
                     currentSection = CrashReportSectionType.HardwarePlatform;
                     foundSectionHeader = true;
-                } else if (ApplicationVersionHeaderRegex.test(line)) {
+                } else if (/\s*count\s+Application Version/.test(line)) {
                     currentSection = CrashReportSectionType.ApplicationVersion;
                     foundSectionHeader = true;
-                } else if (StackTraceHeaderRegex.test(line)) {
+                } else if (/\s*Stack Trace/.test(line)) {
                     currentSection = CrashReportSectionType.StackTrace;
                     foundSectionHeader = true;
                 } else {
                     if (foundSectionHeader && currentSection && !/\s*---+\s*/.exec(line)) {
-
                         // TODO: What's this?
                         // eslint-disable-next-line @typescript-eslint/no-loop-func
                         let crashReportSectionIndex = crashReportBlockSections.findIndex(x => x.sectionType === currentSection);
@@ -256,13 +240,13 @@ export class CrashlogFile {
      * Parses the hardware platform section.
      * Extracts the crash count for each platform.
     */
-    public parseHardwarePlatformSection(sectionLines: string[]): Array < { count: number; hardwarePlatform: RokuHardwarePlatform } > {
+    public parseHardwarePlatformSection(sectionLines: string[]): CrashReport['count']['details'] {
         return sectionLines.filter(l => l !== '').map(line => {
             const [count, ...platformAsArray] = line.split(/\s+/);
             const platformCodeName = platformAsArray.join(' ').trim();
             return {
                 count: parseInt(count),
-                hardwarePlatform: util.identifyPlatform(platformCodeName)
+                hardwarePlatform: platformCodeName
             };
         });
     }
@@ -312,10 +296,10 @@ export class CrashlogFile {
             }
         };
         while (line !== 'Local Variables:') {
-            if (BacktraceScopeRegex.exec(line)) {
+            if (/#[0-9]+\s+./.exec(line)) {
                 const [_, ...scopeAsArray] = line.split(/\s+/);
                 stackTraceStep.scope = scopeAsArray.join(' ').trim();
-            } else if (BacktracePkgLocationRegex.exec(line)) {
+            } else if (/file\/line:\s+./.exec(line)) {
                 const [_, ...pkgLocationAsArray] = line.split(/\s+/);
 
                 const pattern = /(\w+:\/.*?)\((\d+)\)/g;
@@ -356,4 +340,10 @@ export class CrashlogFile {
             localVariables: localVariables
         };
     }
+}
+
+enum CrashReportSectionType {
+    HardwarePlatform = 'HardwarePlatform',
+    ApplicationVersion = 'ApplicationVersion',
+    StackTrace = 'StackTrace'
 }

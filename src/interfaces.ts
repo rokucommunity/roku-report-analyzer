@@ -48,47 +48,6 @@ export interface FileReference {
     srcLocation?: Location;
 }
 
-/**
- * Production status of the platform.
- * - Current: Roku is currently manufacturing this product and it is fully supported.
- * - Updatable: Roku no longer manufactures this product, but it can still be updated with the latest Roku OS.
- * - Legacy: Roku has discontinued this model, and it cannot support newer versions of the Roku OS.
-*/
-export enum ProductionStatus {
-    Current = 'current',
-    Updatable = 'updatable',
-    Legacy = 'legacy',
-    Unknown = 'unknown'
-}
-
-/**
- * @see https://developer.roku.com/docs/specs/hardware.md
-*/
-export interface RokuHardwarePlatform {
-    /**
-     * The common name of the platform.
-     * @example "Roku Express"
-    */
-    productName: string;
-    /**
-     * The code name of the platform.
-     * For any code name that represents a product that has a plus version (e.g. "Roku Express" and "Roku Express +"),
-     * the `productName` and the other properties will represent the **base** product.
-     * @example "Nemo"
-    */
-    codeName: string;
-    /**
-     * The model of the platform, as returned by `roDeviceInfo.GetModel()`.
-     * @example "3930X"
-    */
-    model: string;
-    productionStatus: ProductionStatus;
-    /**
-     * The latest OS version that the platform supports. Only available for products with `productionStatus = "legacy"`.
-     * @example { major: 9, minor: 1 }
-    */
-    latestOsVersion?: { major: number; minor: number };
-}
 
 export interface CrashReport {
     /**
@@ -110,7 +69,7 @@ export interface CrashReport {
     */
     count: {
         total: number;
-        details: Array < { count: number; hardwarePlatform: RokuHardwarePlatform } >;
+        details: Array < { count: number; hardwarePlatform: string } >;
     };
 }
 

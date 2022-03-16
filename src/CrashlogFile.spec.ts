@@ -4,9 +4,6 @@ import { util as bscUtil, standardizePath as s } from 'brighterscript';
 import { CrashlogFile } from './CrashlogFile';
 import { Runner } from './Runner';
 import type { RunnerOptions } from './interfaces';
-// TODO: How to remove this? No quickfix.
-// eslint-disable-next-line sort-imports
-import { ProductionStatus } from './interfaces';
 import { createSandbox } from 'sinon';
 import { expect } from 'chai';
 import { expectContainSubset } from './testUtils.spec';
@@ -141,38 +138,10 @@ describe('CrashlogFile', () => {
     });
 
     describe('parseCrashes', () => {
-        describe('parses the hardware platform section', () => {
-            it('empty section', () => {
-                expect(file.parseHardwarePlatformSection([])).to.be.empty;
-                expect(file.parseHardwarePlatformSection(['', ''])).to.be.empty;
-                expect(file.parseHardwarePlatformSection(['', '', ''])).to.be.empty;
-            });
-
-            it('contains underscores', () => {
-                expectContainSubset(
-                    // eslint-disable-next-line no-tabs
-                    file.parseHardwarePlatformSection(['1	Amarillo_4K']),
-                    [
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: 'Roku Streaming Stick', codeName: 'Amarillo 1080', model: '3800X', productionStatus: ProductionStatus.Updatable }
-                        }
-                    ]
-                );
-            });
-
-            it('contains unknowns', () => {
-                expectContainSubset(
-                    // eslint-disable-next-line no-tabs
-                    file.parseHardwarePlatformSection(['1	SomeNonExisting CodeName']),
-                    [
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: 'Unknown', codeName: 'SomeNonExisting CodeName', model: 'Unknown', productionStatus: ProductionStatus.Unknown }
-                        }
-                    ]
-                );
-            });
+        it('empty section', () => {
+            expect(file.parseHardwarePlatformSection([])).to.be.empty;
+            expect(file.parseHardwarePlatformSection(['', ''])).to.be.empty;
+            expect(file.parseHardwarePlatformSection(['', '', ''])).to.be.empty;
         });
 
         describe('parses the application version section', () => {
@@ -184,12 +153,10 @@ describe('CrashlogFile', () => {
 
             it('normal versions', () => {
                 expect(file.parseApplicationVersionSection([
-                    /* eslint-disable no-tabs */
-                    '1	3.6.5',
-                    '2	0,0,1',
-                    '5	4;2;0',
-                    '3	2.6.590'
-                    /* eslint-enable */
+                    '1\t3.6.5',
+                    '2\t0,0,1',
+                    '5\t4;2;0',
+                    '3\t2.6.590'
                 ])).to.eql(
                     [
                         {
@@ -218,13 +185,11 @@ describe('CrashlogFile', () => {
 
             it('unparsable versions', () => {
                 expect(file.parseApplicationVersionSection([
-                /* eslint-disable no-tabs */
-                    '1	3 6 5',
-                    '2	0	0	1',
-                    '5	ver4.2.0',
-                    '3	2.6.590-hotfix',
-                    '1	a.4.6'
-                /* eslint-enable */
+                    '1\t3 6 5',
+                    '2\t0\t0\t1',
+                    '5\tver4.2.0',
+                    '3\t2.6.590-hotfix',
+                    '1\ta.4.6'
                 ])).to.eql(
                     [
                         {
@@ -235,8 +200,7 @@ describe('CrashlogFile', () => {
                         {
                             count: 2,
                             version: undefined,
-                            // eslint-disable-next-line no-tabs
-                            rawVersion: '0	0	1'
+                            rawVersion: '0\t0\t1'
                         },
                         {
                             count: 5,
@@ -263,30 +227,29 @@ describe('CrashlogFile', () => {
         });
 
         it('structures crashes correctly', () => {
-            /* eslint-disable no-tabs */
             file.parse(`
-                18 	Function doupdatecaptionsmode() As Void; pkg:/components/playerscreen/PlayerScreen.brs(2941)
+                18 \tFunction doupdatecaptionsmode() As Void; pkg:/components/playerscreen/PlayerScreen.brs(2941)
                 ____________________________________________________
             
-                count		Hardware Platform
+                count\t\tHardware Platform
                 --------------------------------
-                        3	Malone
-                        3	Marlin
-                        2	Midland
-                        2	Nemo
-                        1	Tyler
-                        1	Amarillo_4K
-                        1	Littlefield
-                        1	Liberty
-                        1	Gilbert
-                        1	Longview
-                        1	Gilbert 4K
-                        1	Benjamin
+                        3\tMalone
+                        3\tMarlin
+                        2\tMidland
+                        2\tNemo
+                        1\tTyler
+                        1\tAmarillo_4K
+                        1\tLittlefield
+                        1\tLiberty
+                        1\tGilbert
+                        1\tLongview
+                        1\tGilbert 4K
+                        1\tBenjamin
             
             
-                count		Application Version
+                count\t\tApplication Version
                 -----------------------------
-                        18	2.6.6
+                        18\t2.6.6
             
             
                 Stack Trace
@@ -304,7 +267,6 @@ describe('CrashlogFile', () => {
             m                roAssociativeArray refcnt=3 count:67 
             ccsetting        roString refcnt=1 val:"On"
             `);
-            /* eslint-enable */
 
             expectContainSubset(file.crashes[0], {
                 errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
@@ -335,54 +297,18 @@ describe('CrashlogFile', () => {
                 count: {
                     total: 18,
                     details: [
-                        {
-                            count: 3,
-                            hardwarePlatform: { productName: '4K Roku TV', codeName: 'Malone', model: 'C000X', productionStatus: ProductionStatus.Current }
-                        },
-                        {
-                            count: 3,
-                            hardwarePlatform: { productName: 'Roku Express 4K', codeName: 'Marlin 4K', model: '3940X', productionStatus: ProductionStatus.Current }
-                        },
-                        {
-                            count: 2,
-                            hardwarePlatform: { productName: 'Roku TV', codeName: 'Midland', model: '8000X', productionStatus: ProductionStatus.Current }
-                        },
-                        {
-                            count: 2,
-                            hardwarePlatform: { productName: 'Roku Express', codeName: 'Nemo', model: '3930X', productionStatus: ProductionStatus.Current }
-                        },
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: 'Roku LT', codeName: 'Tyler', model: '2700X', productionStatus: ProductionStatus.Updatable }
-                        },
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: 'Roku Streaming Stick', codeName: 'Amarillo 1080', model: '3800X', productionStatus: ProductionStatus.Updatable }
-                        },
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: 'Roku Express', codeName: 'Littlefield', model: '3700X', productionStatus: ProductionStatus.Updatable }
-                        },
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: 'Roku TV', codeName: 'Liberty', model: '5000X', productionStatus: ProductionStatus.Updatable }
-                        },
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: 'Roku Express', codeName: 'Gilbert', model: '3900X', productionStatus: ProductionStatus.Updatable }
-                        },
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: '4K Roku TV', codeName: 'Longview', model: '7000X', productionStatus: ProductionStatus.Current }
-                        },
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: 'Roku Premiere', codeName: 'Gilbert 4K', model: '3920X', productionStatus: ProductionStatus.Updatable }
-                        },
-                        {
-                            count: 1,
-                            hardwarePlatform: { productName: 'Roku Ultra', codeName: 'Benjamin', model: '4800X', productionStatus: ProductionStatus.Current }
-                        }
+                        { count: 3, hardwarePlatform: 'Malone' },
+                        { count: 3, hardwarePlatform: 'Marlin' },
+                        { count: 2, hardwarePlatform: 'Midland' },
+                        { count: 2, hardwarePlatform: 'Nemo' },
+                        { count: 1, hardwarePlatform: 'Tyler' },
+                        { count: 1, hardwarePlatform: 'Amarillo_4K' },
+                        { count: 1, hardwarePlatform: 'Littlefield' },
+                        { count: 1, hardwarePlatform: 'Liberty' },
+                        { count: 1, hardwarePlatform: 'Gilbert' },
+                        { count: 1, hardwarePlatform: 'Longview' },
+                        { count: 1, hardwarePlatform: 'Gilbert 4K' },
+                        { count: 1, hardwarePlatform: 'Benjamin' }
                     ]
                 }
             });
