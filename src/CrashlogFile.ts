@@ -120,7 +120,6 @@ export class CrashlogFile {
                     foundSectionHeader = true;
                 } else {
                     if (foundSectionHeader && currentSection && !/\s*---+\s*/.exec(line)) {
-                        // eslint-disable-next-line @typescript-eslint/no-loop-func
                         let crashReportSectionIndex = crashReportBlockSections.findIndex(x => x.sectionType === currentSection);
 
                         if (crashReportSectionIndex === -1) {
@@ -298,7 +297,6 @@ export class CrashlogFile {
                 foundSectionHeader = true;
             } else {
                 if (foundSectionHeader && currentSection) {
-                    // eslint-disable-next-line @typescript-eslint/no-loop-func
                     let sectionIndex = stackTraceSections.findIndex(x => x.sectionType === currentSection);
                     if (sectionIndex === -1) {
                         stackTraceSections.push({
