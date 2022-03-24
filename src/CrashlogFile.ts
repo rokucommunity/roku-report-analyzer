@@ -95,19 +95,6 @@ export class CrashlogFile {
         this.crashes = [];
         let contents = this.fileContents;
 
-        // TODO: redundant code from StandardReporter, how to refactor?
-        // walk the references backwards and replace the file contents
-        for (const ref of [...this.references].reverse()) {
-            //if the reference has a mapped source location
-            if (ref.srcLocation) {
-                contents =
-                    contents.substring(0, ref.offset) +
-                    standardizePath`${ref.srcLocation.path}` +
-                    `(${ref.srcLocation.line + 1})` +
-                    contents.substring(ref.offset + ref.length);
-            }
-        }
-
         let crashReportBlocks = contents?.split(/\s*___+\s*/) ?? [];
 
         // Filter out crash reports without stack trace
