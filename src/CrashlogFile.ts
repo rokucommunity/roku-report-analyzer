@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { ApplicationVersionCount, CrashReport, FileReference, LocalVariable, StackTraceStep } from './interfaces';
+import type { ApplicationVersionCount, CrashReport, FileReference, LocalVariable, StackFrame } from './interfaces';
 import { util as bscUtil, standardizePath } from 'brighterscript';
 import type { Position } from 'brighterscript';
 import type { Runner } from './Runner';
@@ -142,7 +142,7 @@ export class CrashlogFile {
             let crashReport: CrashReport = {
                 applicationVersions: [],
                 errorMessage: '',
-                stackTrace: [],
+                stackFrame: [],
                 localVariables: [],
                 count: {
                     total: 0,
@@ -162,9 +162,9 @@ export class CrashlogFile {
                         crashReport.count.total = applicationVersions.reduce((acc, curr) => acc + curr.count, 0);
                         break;
                     case CrashReportSectionType.StackTrace:
-                        const { errorMessage, stackTrace, localVariables } = this.parseStackTraceSection(crashReportSection.lines);
+                        const { errorMessage, stackFrame: stackTrace, localVariables } = this.parseStackTraceSection(crashReportSection.lines);
                         crashReport.errorMessage = errorMessage;
-                        crashReport.stackTrace = stackTrace;
+                        crashReport.stackFrame = stackTrace;
                         crashReport.localVariables = localVariables;
                         break;
                 }
@@ -262,14 +262,14 @@ export class CrashlogFile {
     public parseStackTraceSection(lines: string[]): ParsedStackTraceSection {
         const parsedStackTraceSection: ParsedStackTraceSection = {
             errorMessage: '',
-            stackTrace: [],
+            stackFrame: [],
             localVariables: []
         };
 
         lines = lines.filter(l => l !== '');
 
         if (lines.length === 0) {
-            return { errorMessage: '', stackTrace: [], localVariables: [] };
+            return { errorMessage: '', stackFrame: [], localVariables: [] };
         }
 
         const firstLine = lines[0];
@@ -317,7 +317,7 @@ export class CrashlogFile {
                     parsedStackTraceSection.localVariables = this.parseStackTraceLocalVariables(stackTraceSection.lines);
                     break;
                 case StackTraceSectionType.BackTrace:
-                    parsedStackTraceSection.stackTrace = this.parseStackTraceBacktrace(stackTraceSection.lines);
+                    parsedStackTraceSection.stackFrame = this.parseStackFrames(stackTraceSection.lines);
                     break;
             }
         }
@@ -326,13 +326,13 @@ export class CrashlogFile {
     }
 
     /**
-     * Parses the backtrace of the stack trace.
-     * Extracts the scope and location of each step.
+     * Parses the stack frames.
+     * Extracts the scope and location of each stack frame.
     */
-    public parseStackTraceBacktrace(lines: string[]): StackTraceStep[] {
-        const backtrace: StackTraceStep[] = [];
+    public parseStackFrames(lines: string[]): StackFrame[] {
+        const backtrace: StackFrame[] = [];
 
-        let backtraceStep: StackTraceStep = { scope: '', pkgLocation: { path: '', line: 0, character: 0 } };
+        let stackFrame: StackFrame = { scope: '', pkgLocation: { path: '', line: 0, character: 0 } };
 
         for (const line of lines) {
             if (line === '') {
@@ -340,20 +340,20 @@ export class CrashlogFile {
             }
             if (/#[0-9]+\s+./.exec(line)) {
                 const [_, ...scopeAsArray] = line.split(/\s+/);
-                backtraceStep.scope = scopeAsArray.join(' ').trim();
+                stackFrame.scope = scopeAsArray.join(' ').trim();
             } else if (/file\/line:\s+./.exec(line)) {
                 const [_, ...pkgLocationAsArray] = line.split(/\s+/);
 
                 const pattern = /(\w+:\/.*?)\((\d+)\)/g;
                 const match = pattern.exec(pkgLocationAsArray.join(' ').trim());
                 if (match) {
-                    backtraceStep.pkgLocation = {
+                    stackFrame.pkgLocation = {
                         path: match[1],
                         line: parseInt(match[2]) - 1,
                         character: 0
                     };
 
-                    backtrace.push({ ...backtraceStep }); // Shallow copy to avoid object reference problem.
+                    backtrace.push({ ...stackFrame }); // Shallow copy to avoid object reference problem.
                 }
             }
         }
@@ -395,6 +395,6 @@ enum StackTraceSectionType {
 
 interface ParsedStackTraceSection {
     errorMessage: string;
-    stackTrace: StackTraceStep[];
+    stackFrame: StackFrame[];
     localVariables: LocalVariable[];
 }

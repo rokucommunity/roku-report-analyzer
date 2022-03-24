@@ -224,9 +224,9 @@ describe('CrashlogFile', () => {
 
         describe('parses the stack trace section', () => {
             it('empty section', () => {
-                expectContainSubset(file.parseStackTraceSection([]), { errorMessage: '', stackTrace: [], localVariables: [] });
-                expectContainSubset(file.parseStackTraceSection(['']), { errorMessage: '', stackTrace: [], localVariables: [] });
-                expectContainSubset(file.parseStackTraceSection(['', '']), { errorMessage: '', stackTrace: [], localVariables: [] });
+                expectContainSubset(file.parseStackTraceSection([]), { errorMessage: '', stackFrame: [], localVariables: [] });
+                expectContainSubset(file.parseStackTraceSection(['']), { errorMessage: '', stackFrame: [], localVariables: [] });
+                expectContainSubset(file.parseStackTraceSection(['', '']), { errorMessage: '', stackFrame: [], localVariables: [] });
             });
 
             it('no error message', () => {
@@ -244,7 +244,7 @@ describe('CrashlogFile', () => {
 
                 expectContainSubset(file.parseStackTraceSection(section), {
                     errorMessage: '',
-                    stackTrace: [
+                    stackFrame: [
                         {
                             scope: 'Function doupdatecaptionsmode() As Void',
                             pkgLocation: {
@@ -291,7 +291,7 @@ describe('CrashlogFile', () => {
 
                 expectContainSubset(file.parseStackTraceSection(section), {
                     errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
-                    stackTrace: [],
+                    stackFrame: [],
                     localVariables: [
                         {
                             name: 'global',
@@ -325,7 +325,7 @@ describe('CrashlogFile', () => {
 
                 expectContainSubset(file.parseStackTraceSection(section), {
                     errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
-                    stackTrace: [
+                    stackFrame: [
                         {
                             scope: 'Function doupdatecaptionsmode() As Void',
                             pkgLocation: {
@@ -363,7 +363,7 @@ describe('CrashlogFile', () => {
 
                 expectContainSubset(file.parseStackTraceSection(section), {
                     errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
-                    stackTrace: [
+                    stackFrame: [
                         {
                             scope: 'Function doupdatecaptionsmode() As Void',
                             pkgLocation: {
@@ -443,7 +443,7 @@ describe('CrashlogFile', () => {
 
             expectContainSubset(file.crashes[0], {
                 errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
-                stackTrace: [
+                stackFrame: [
                     {
                         scope: 'Function doupdatecaptionsmode() As Void',
                         pkgLocation: {

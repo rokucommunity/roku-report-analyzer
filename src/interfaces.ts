@@ -58,7 +58,7 @@ export interface CrashReport {
     /**
      * The stack trace in reverse scope order.
     */
-    stackTrace: StackTraceStep[];
+    stackFrame: StackFrame[];
     /**
      * Each one of the local variables and their metadata
     */
@@ -83,7 +83,7 @@ export interface Reporter {
     generate(runner: Runner): any;
 }
 
-export interface StackTraceStep {
+export interface StackFrame {
     /**
      * The scope level where the error occurred.
      * @example Function startPlayback() As Void
