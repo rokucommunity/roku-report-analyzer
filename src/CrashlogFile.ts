@@ -1,7 +1,5 @@
 import * as path from 'path';
-import type { ApplicationVersionCount, CrashReport, FileReference, LocalVariable, Location, StackTraceStep } from './interfaces';
-
-// eslint-disable-next-line sort-imports
+import type { ApplicationVersionCount, CrashReport, FileReference, LocalVariable, StackTraceStep } from './interfaces';
 import { util as bscUtil, standardizePath } from 'brighterscript';
 import type { Position } from 'brighterscript';
 import type { Runner } from './Runner';
@@ -135,7 +133,6 @@ export class CrashlogFile {
                     foundSectionHeader = true;
                 } else {
                     if (foundSectionHeader && currentSection && !/\s*---+\s*/.exec(line)) {
-                        // TODO: What's this?
                         // eslint-disable-next-line @typescript-eslint/no-loop-func
                         let crashReportSectionIndex = crashReportBlockSections.findIndex(x => x.sectionType === currentSection);
 
@@ -276,69 +273,127 @@ export class CrashlogFile {
      * Parses the stack trace section.
      * Extracts the error message, the backtrace and the local variables of the crash.
     */
-    public parseStackTraceSection(lines: string[]): { errorMessage: string; stackTrace: StackTraceStep[]; localVariables: LocalVariable[] } {
-        const stackTrace = [];
-        const localVariables = [];
+    public parseStackTraceSection(lines: string[]): ParsedStackTraceSection {
+        const parsedStackTraceSection: ParsedStackTraceSection = {
+            errorMessage: '',
+            stackTrace: [],
+            localVariables: []
+        };
 
         lines = lines.filter(l => l !== '');
-        const errorMessage = lines[0];
 
-        // Then comes the backtrace
-        let lineIndex = 2; // Skip the error message and the 'Backtrace:' header
+        if (lines.length === 0) {
+            return { errorMessage: '', stackTrace: [], localVariables: [] };
+        }
 
-        let line = lines[lineIndex];
-        let stackTraceStep: { scope: string; pkgLocation: Location } = {
-            scope: '',
-            pkgLocation: {
-                path: '',
-                line: 0,
-                character: 0
+        const firstLine = lines[0];
+
+        // In case the error message is missing
+        if (firstLine === 'Local Variables:' || firstLine === 'Backtrace:') {
+            parsedStackTraceSection.errorMessage = '';
+        } else {
+            parsedStackTraceSection.errorMessage = firstLine;
+            lines.shift();
+        }
+
+        const stackTraceSections: Array<{ sectionType: StackTraceSectionType; lines: string[] }> = [];
+
+        let currentSection: StackTraceSectionType | undefined;
+        let foundSectionHeader = false;
+
+        // Separate the block in two sections: Backtrace and LocalVariables
+        for (const line of lines) {
+            if (line === 'Local Variables:') {
+                currentSection = StackTraceSectionType.LocalVariables;
+                foundSectionHeader = true;
+            } else if (line === 'Backtrace:') {
+                currentSection = StackTraceSectionType.BackTrace;
+                foundSectionHeader = true;
+            } else {
+                if (foundSectionHeader && currentSection) {
+                    // eslint-disable-next-line @typescript-eslint/no-loop-func
+                    let sectionIndex = stackTraceSections.findIndex(x => x.sectionType === currentSection);
+                    if (sectionIndex === -1) {
+                        stackTraceSections.push({
+                            sectionType: currentSection,
+                            lines: [line]
+                        });
+                    } else {
+                        stackTraceSections[sectionIndex].lines.push(line);
+                    }
+                }
             }
-        };
-        while (line !== 'Local Variables:') {
+        }
+
+        // Process each section
+        for (const stackTraceSection of stackTraceSections) {
+            switch (stackTraceSection.sectionType) {
+                case StackTraceSectionType.LocalVariables:
+                    parsedStackTraceSection.localVariables = this.parseStackTraceLocalVariables(stackTraceSection.lines);
+                    break;
+                case StackTraceSectionType.BackTrace:
+                    parsedStackTraceSection.stackTrace = this.parseStackTraceBacktrace(stackTraceSection.lines);
+                    break;
+            }
+        }
+
+        return parsedStackTraceSection;
+    }
+
+    /**
+     * Parses the backtrace of the stack trace.
+     * Extracts the scope and location of each step.
+    */
+    public parseStackTraceBacktrace(lines: string[]): StackTraceStep[] {
+        const backtrace: StackTraceStep[] = [];
+
+        let backtraceStep: StackTraceStep = { scope: '', pkgLocation: { path: '', line: 0, character: 0 } };
+
+        for (const line of lines) {
+            if (line === '') {
+                continue;
+            }
             if (/#[0-9]+\s+./.exec(line)) {
                 const [_, ...scopeAsArray] = line.split(/\s+/);
-                stackTraceStep.scope = scopeAsArray.join(' ').trim();
+                backtraceStep.scope = scopeAsArray.join(' ').trim();
             } else if (/file\/line:\s+./.exec(line)) {
                 const [_, ...pkgLocationAsArray] = line.split(/\s+/);
 
                 const pattern = /(\w+:\/.*?)\((\d+)\)/g;
                 const match = pattern.exec(pkgLocationAsArray.join(' ').trim());
                 if (match) {
-                    stackTraceStep.pkgLocation = {
+                    backtraceStep.pkgLocation = {
                         path: match[1],
                         line: parseInt(match[2]) - 1,
                         character: 0
                     };
 
-                    stackTrace.push({ ...stackTraceStep }); // Shallow copy to avoid object reference problem.
+                    backtrace.push({ ...backtraceStep }); // Shallow copy to avoid object reference problem.
                 }
             }
-
-            lineIndex++;
-            line = lines[lineIndex];
         }
 
-        // And finally, the local variables
-        lineIndex++; // Skip the 'Local Variables:' header
+        return backtrace;
+    }
 
-        for (; lineIndex < lines.length; lineIndex++) {
-            line = lines[lineIndex];
+    /**
+     * Parses the local variables section.
+     * Extracts the local variables and their metadata.
+    */
+    public parseStackTraceLocalVariables(lines: string[]): LocalVariable[] {
+        const localVariables: LocalVariable[] = [];
+
+        for (const line of lines) {
             if (line === '') {
                 continue;
             }
-
             const [name, ...metadataAsArray] = line.split(/\s+/);
             const metadata = metadataAsArray.join(' ').trim();
 
             localVariables.push({ name: name, metadata: metadata });
         }
 
-        return {
-            errorMessage: errorMessage,
-            stackTrace: stackTrace,
-            localVariables: localVariables
-        };
+        return localVariables;
     }
 }
 
@@ -346,4 +401,15 @@ enum CrashReportSectionType {
     HardwarePlatform = 'HardwarePlatform',
     ApplicationVersion = 'ApplicationVersion',
     StackTrace = 'StackTrace'
+}
+
+enum StackTraceSectionType {
+    BackTrace = 'BackTrace',
+    LocalVariables = 'LocalVariables'
+}
+
+interface ParsedStackTraceSection {
+    errorMessage: string;
+    stackTrace: StackTraceStep[];
+    localVariables: LocalVariable[];
 }

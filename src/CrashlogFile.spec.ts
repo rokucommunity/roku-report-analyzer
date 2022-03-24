@@ -223,7 +223,180 @@ describe('CrashlogFile', () => {
         });
 
         describe('parses the stack trace section', () => {
+            it('empty section', () => {
+                expectContainSubset(file.parseStackTraceSection([]), { errorMessage: '', stackTrace: [], localVariables: [] });
+                expectContainSubset(file.parseStackTraceSection(['']), { errorMessage: '', stackTrace: [], localVariables: [] });
+                expectContainSubset(file.parseStackTraceSection(['', '']), { errorMessage: '', stackTrace: [], localVariables: [] });
+            });
 
+            it('no error message', () => {
+                const section = [
+                    'Backtrace:',
+                    '#1  Function doupdatecaptionsmode() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    '#0  Function onfullscreenanimationfinished() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(741)',
+                    'Local Variables:',
+                    'global           Interface:ifGlobal',
+                    'm                roAssociativeArray refcnt=3 count:67',
+                    'ccsetting        roString refcnt=1 val:"On"'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: '',
+                    stackTrace: [
+                        {
+                            scope: 'Function doupdatecaptionsmode() As Void',
+                            pkgLocation: {
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
+                                line: 2940,
+                                character: 0
+                            }
+                        },
+                        {
+                            scope: 'Function onfullscreenanimationfinished() As Void',
+                            pkgLocation: {
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
+                                line: 740,
+                                character: 0
+                            }
+                        }
+                    ],
+                    localVariables: [
+                        {
+                            name: 'global',
+                            metadata: 'Interface:ifGlobal'
+                        },
+                        {
+                            name: 'm',
+                            metadata: 'roAssociativeArray refcnt=3 count:67'
+                        },
+                        {
+                            name: 'ccsetting',
+                            metadata: 'roString refcnt=1 val:"On"'
+                        }
+                    ]
+                });
+            });
+
+            it('no backtrace', () => {
+                const section = [
+                    'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    'Backtrace:',
+                    'Local Variables:',
+                    'global           Interface:ifGlobal',
+                    'm                roAssociativeArray refcnt=3 count:67',
+                    'ccsetting        roString refcnt=1 val:"On"'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    stackTrace: [],
+                    localVariables: [
+                        {
+                            name: 'global',
+                            metadata: 'Interface:ifGlobal'
+                        },
+                        {
+                            name: 'm',
+                            metadata: 'roAssociativeArray refcnt=3 count:67'
+                        },
+                        {
+                            name: 'ccsetting',
+                            metadata: 'roString refcnt=1 val:"On"'
+                        }
+                    ]
+                });
+            });
+
+            it('no local variables', () => {
+                const section = [
+                    'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    'Backtrace:',
+                    '#1  Function doupdatecaptionsmode() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    '#0  Function onfullscreenanimationfinished() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(741)',
+                    'Local Variables:',
+                    'global           Interface:ifGlobal',
+                    'm                roAssociativeArray refcnt=3 count:67',
+                    'ccsetting        roString refcnt=1 val:"On"'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    stackTrace: [
+                        {
+                            scope: 'Function doupdatecaptionsmode() As Void',
+                            pkgLocation: {
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
+                                line: 2940,
+                                character: 0
+                            }
+                        },
+                        {
+                            scope: 'Function onfullscreenanimationfinished() As Void',
+                            pkgLocation: {
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
+                                line: 740,
+                                character: 0
+                            }
+                        }
+                    ],
+                    localVariables: []
+                });
+            });
+
+            it('normal section', () => {
+                const section = [
+                    'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    'Backtrace:',
+                    '#1  Function doupdatecaptionsmode() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    '#0  Function onfullscreenanimationfinished() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(741)',
+                    'Local Variables:',
+                    'global           Interface:ifGlobal',
+                    'm                roAssociativeArray refcnt=3 count:67',
+                    'ccsetting        roString refcnt=1 val:"On"'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    stackTrace: [
+                        {
+                            scope: 'Function doupdatecaptionsmode() As Void',
+                            pkgLocation: {
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
+                                line: 2940,
+                                character: 0
+                            }
+                        },
+                        {
+                            scope: 'Function onfullscreenanimationfinished() As Void',
+                            pkgLocation: {
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
+                                line: 740,
+                                character: 0
+                            }
+                        }
+                    ],
+                    localVariables: [
+                        {
+                            name: 'global',
+                            metadata: 'Interface:ifGlobal'
+                        },
+                        {
+                            name: 'm',
+                            metadata: 'roAssociativeArray refcnt=3 count:67'
+                        },
+                        {
+                            name: 'ccsetting',
+                            metadata: 'roString refcnt=1 val:"On"'
+                        }
+                    ]
+                });
+            });
         });
 
         it('structures crashes correctly', () => {
