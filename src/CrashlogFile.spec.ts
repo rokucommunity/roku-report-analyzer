@@ -247,19 +247,12 @@ describe('CrashlogFile', () => {
                     stackFrame: [
                         {
                             scope: 'Function doupdatecaptionsmode() As Void',
-                            pkgLocation: {
-                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
-                                line: 2940,
-                                character: 0
-                            }
+                            // Can't get the reference if parse() has not been called.
+                            reference: undefined
                         },
                         {
                             scope: 'Function onfullscreenanimationfinished() As Void',
-                            pkgLocation: {
-                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
-                                line: 740,
-                                character: 0
-                            }
+                            reference: undefined
                         }
                     ],
                     localVariables: [
@@ -282,7 +275,6 @@ describe('CrashlogFile', () => {
             it('no backtrace', () => {
                 const section = [
                     'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
-                    'Backtrace:',
                     'Local Variables:',
                     'global           Interface:ifGlobal',
                     'm                roAssociativeArray refcnt=3 count:67',
@@ -316,11 +308,7 @@ describe('CrashlogFile', () => {
                     '#1  Function doupdatecaptionsmode() As Void',
                     'file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941)',
                     '#0  Function onfullscreenanimationfinished() As Void',
-                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(741)',
-                    'Local Variables:',
-                    'global           Interface:ifGlobal',
-                    'm                roAssociativeArray refcnt=3 count:67',
-                    'ccsetting        roString refcnt=1 val:"On"'
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(741)'
                 ];
 
                 expectContainSubset(file.parseStackTraceSection(section), {
@@ -328,19 +316,12 @@ describe('CrashlogFile', () => {
                     stackFrame: [
                         {
                             scope: 'Function doupdatecaptionsmode() As Void',
-                            pkgLocation: {
-                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
-                                line: 2940,
-                                character: 0
-                            }
+                            // Can't get the reference if parse() has not been called.
+                            reference: undefined
                         },
                         {
                             scope: 'Function onfullscreenanimationfinished() As Void',
-                            pkgLocation: {
-                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
-                                line: 740,
-                                character: 0
-                            }
+                            reference: undefined
                         }
                     ],
                     localVariables: []
@@ -366,19 +347,12 @@ describe('CrashlogFile', () => {
                     stackFrame: [
                         {
                             scope: 'Function doupdatecaptionsmode() As Void',
-                            pkgLocation: {
-                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
-                                line: 2940,
-                                character: 0
-                            }
+                            // Can't get the reference if parse() has not been called.
+                            reference: undefined
                         },
                         {
                             scope: 'Function onfullscreenanimationfinished() As Void',
-                            pkgLocation: {
-                                path: 'pkg:/components/playerscreen/PlayerScreen.brs',
-                                line: 740,
-                                character: 0
-                            }
+                            reference: undefined
                         }
                     ],
                     localVariables: [
@@ -446,18 +420,46 @@ describe('CrashlogFile', () => {
                 stackFrame: [
                     {
                         scope: 'Function doupdatecaptionsmode() As Void',
-                        pkgLocation: {
-                            path: 'pkg:/components/playerscreen/PlayerScreen.brs',
-                            line: 2940,
-                            character: 0
+                        reference: {
+                            length: 51,
+                            offset: 1240,
+                            pkgLocation: {
+                                character: 0,
+                                line: 2940,
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs'
+                            },
+                            range: {
+                                end: {
+                                    character: 78,
+                                    line: 32
+                                },
+                                start: {
+                                    character: 27,
+                                    line: 32
+                                }
+                            }
                         }
                     },
                     {
                         scope: 'Function onfullscreenanimationfinished() As Void',
-                        pkgLocation: {
-                            path: 'pkg:/components/playerscreen/PlayerScreen.brs',
-                            line: 740,
-                            character: 0
+                        reference: {
+                            length: 50,
+                            offset: 1386,
+                            pkgLocation: {
+                                character: 0,
+                                line: 740,
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs'
+                            },
+                            range: {
+                                end: {
+                                    character: 77,
+                                    line: 34
+                                },
+                                start: {
+                                    character: 27,
+                                    line: 34
+                                }
+                            }
                         }
                     }
                 ],
@@ -466,7 +468,7 @@ describe('CrashlogFile', () => {
                     { name: 'm', metadata: 'roAssociativeArray refcnt=3 count:67' },
                     { name: 'ccsetting', metadata: 'roString refcnt=1 val:"On"' }
                 ],
-                applicationVersions: [{ count: 18, version: { major: 2, minor: 6, build: 6 } }],
+                applicationVersions: [{ count: 18, version: { major: 2, minor: 6, build: 6 }, rawVersion: '2.6.6' }],
                 count: {
                     total: 18,
                     details: [

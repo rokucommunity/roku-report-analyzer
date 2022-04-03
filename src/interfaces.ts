@@ -89,15 +89,18 @@ export interface StackFrame {
      * @example Function startPlayback() As Void
     */
     scope: string;
-    pkgLocation: Location;
-    srcLocation?: Location;
+    /**
+     * Pointer to the `FileReference` in `CrashlogFile.references` that contains the location of the error.
+     * `undefined` if not found in `CrashlogFile.references`.
+    */
+    reference: FileReference | undefined;
 }
 
 export interface LocalVariable {
     name: string;
     /**
      * The additional data that is available for the variable.
-     * @example roAssociativeArray refcnt=3 count:67
+     * @example "roAssociativeArray refcnt=3 count:67"
      */
     // For now just use the raw value. Maybe we can parse this further later.
     metadata: string;

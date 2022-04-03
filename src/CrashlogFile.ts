@@ -1,8 +1,9 @@
 import * as path from 'path';
 import type { ApplicationVersionCount, CrashReport, FileReference, LocalVariable, StackFrame } from './interfaces';
-import { util as bscUtil, standardizePath } from 'brighterscript';
 import type { Position } from 'brighterscript';
 import type { Runner } from './Runner';
+import { util as bscUtil } from 'brighterscript';
+import { util } from './util';
 
 export class CrashlogFile {
     public constructor(
@@ -330,9 +331,9 @@ export class CrashlogFile {
      * Extracts the scope and location of each stack frame.
     */
     public parseStackFrames(lines: string[]): StackFrame[] {
-        const backtrace: StackFrame[] = [];
+        const stackTrace: StackFrame[] = [];
 
-        let stackFrame: StackFrame = { scope: '', pkgLocation: { path: '', line: 0, character: 0 } };
+        let stackFrame: StackFrame = { scope: '', reference: undefined };
 
         for (const line of lines) {
             if (line === '') {
@@ -344,21 +345,30 @@ export class CrashlogFile {
             } else if (/file\/line:\s+./.exec(line)) {
                 const [_, ...pkgLocationAsArray] = line.split(/\s+/);
 
-                const pattern = /(\w+:\/.*?)\((\d+)\)/g;
-                const match = pattern.exec(pkgLocationAsArray.join(' ').trim());
+                const match = /(\w+:\/.*?)\((\d+)\)/.exec(pkgLocationAsArray.join(' ').trim());
                 if (match) {
-                    stackFrame.pkgLocation = {
-                        path: match[1],
-                        line: parseInt(match[2]) - 1,
-                        character: 0
-                    };
+                    // We need the range to calculate the reference index. To generate the range, we need the line number.
+                    // We don't have access to the exact line number because we separated the stack trace
+                    // at the beginning `parseCrashes()`, removing any unnecesary information.
+                    // So we calculate it here from `this.fileContents`.
+                    const fileContentsList = this.fileContents.split(/\r?\n/);
+                    const originalLineIndex = fileContentsList.findIndex(l => l.includes(line));
+                    const originalLineMatch = /(\w+:\/.*?)\((\d+)\)/.exec(fileContentsList[originalLineIndex]);
 
-                    backtrace.push({ ...stackFrame }); // Shallow copy to avoid object reference problem.
+                    if (originalLineMatch) {
+                        const range = bscUtil.createRange(originalLineIndex, originalLineMatch.index, originalLineIndex, originalLineMatch.index + originalLineMatch[0].length);
+                        stackFrame.reference = this.references
+                            .find(ref => util.areRangesEqual(ref.range, range) &&
+                                ref.offset === this.positionToOffset(range.start) &&
+                                ref.length === match[0].length);
+                    }
+                    // Shallow copy to avoid object reference problem.
+                    stackTrace.push({ ...stackFrame });
                 }
             }
         }
 
-        return backtrace;
+        return stackTrace;
     }
 
     /**
