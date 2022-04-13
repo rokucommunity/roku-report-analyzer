@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.2.1](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.2.0...v0.2.1) - 2022-04-13
+### Fixed
+ - npm audit issue
+
+
+
 ## [0.2.0](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.1.0...v0.2.0) - 2022-03-08
 ### Added
  - basic logging to track progress and debug issues
