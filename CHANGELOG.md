@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.2.2](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.2.1...0.2.2) - 2022-07-18
+### Changed
+ - upgrade to [@rokucommunity/logger@0.3.0](https://github.com/rokucommunity/logger/blob/master/CHANGELOG.md#030---2022-04-19)
+ - upgrade to [brighterscript@0.53.1](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0531---2022-07-15)
+
+
+
 ## [0.2.1](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.2.0...v0.2.1) - 2022-04-13
 ### Fixed
  - npm audit issue
