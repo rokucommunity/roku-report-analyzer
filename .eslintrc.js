@@ -84,6 +84,7 @@ module.exports = {
         '@typescript-eslint/typedef': 'off',
         '@typescript-eslint/unbound-method': 'off',
         '@typescript-eslint/unified-signatures': 'off',
+        '@typescript-eslint/no-loop-func': 'off',
         'array-bracket-newline': 'off',
         'array-element-newline': 'off',
         'array-type': 'off',
