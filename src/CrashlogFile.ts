@@ -336,9 +336,6 @@ export class CrashlogFile {
         let stackFrame: StackFrame = { scope: '', reference: undefined };
 
         for (const line of lines) {
-            if (line === '') {
-                continue;
-            }
             if (/#[0-9]+\s+./.exec(line)) {
                 const [_, ...scopeAsArray] = line.split(/\s+/);
                 stackFrame.scope = scopeAsArray.join(' ').trim();
@@ -362,9 +359,9 @@ export class CrashlogFile {
                                 ref.offset === this.positionToOffset(range.start) &&
                                 ref.length === match[0].length);
                     }
-                    // Shallow copy to avoid object reference problem.
-                    stackTrace.push({ ...stackFrame });
                 }
+                // Shallow copy to avoid object reference problem.
+                stackTrace.push({ ...stackFrame });
             }
         }
 
@@ -379,9 +376,6 @@ export class CrashlogFile {
         const localVariables: LocalVariable[] = [];
 
         for (const line of lines) {
-            if (line === '') {
-                continue;
-            }
             const [name, ...metadataAsArray] = line.split(/\s+/);
             const metadata = metadataAsArray.join(' ').trim();
 

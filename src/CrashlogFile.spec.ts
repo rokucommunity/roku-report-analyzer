@@ -229,6 +229,51 @@ describe('CrashlogFile', () => {
                 expectContainSubset(file.parseStackTraceSection(['', '']), { errorMessage: '', stackFrame: [], localVariables: [] });
             });
 
+            it('still includes functions even if file/line is unparsable', () => {
+                const section = [
+                    'Backtrace:',
+                    '#1  Function doupdatecaptionsmode() As Void',
+                    'asdasdasd',
+                    'file/line: pkgAAAAAA/components/playerscreen/PlayerScreen.brs(2941)',
+                    '#0  Function onfullscreenanimationfinished() As Void',
+                    'file/line: pkgAAAAAAAA/components/playerscreen/PlayerScreen.brs(741)',
+                    'Local Variables:',
+                    '',
+                    'global           Interface:ifGlobal',
+                    'm                roAssociativeArray refcnt=3 count:67',
+                    'ccsetting        roString refcnt=1 val:"On"'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: '',
+                    stackFrame: [
+                        {
+                            scope: 'Function doupdatecaptionsmode() As Void',
+                            // Can't get the reference if parse() has not been called.
+                            reference: undefined
+                        },
+                        {
+                            scope: 'Function onfullscreenanimationfinished() As Void',
+                            reference: undefined
+                        }
+                    ],
+                    localVariables: [
+                        {
+                            name: 'global',
+                            metadata: 'Interface:ifGlobal'
+                        },
+                        {
+                            name: 'm',
+                            metadata: 'roAssociativeArray refcnt=3 count:67'
+                        },
+                        {
+                            name: 'ccsetting',
+                            metadata: 'roString refcnt=1 val:"On"'
+                        }
+                    ]
+                });
+            });
+
             it('no error message', () => {
                 const section = [
                     'Backtrace:',
@@ -237,6 +282,7 @@ describe('CrashlogFile', () => {
                     '#0  Function onfullscreenanimationfinished() As Void',
                     'file/line: pkg:/components/playerscreen/PlayerScreen.brs(741)',
                     'Local Variables:',
+                    '',
                     'global           Interface:ifGlobal',
                     'm                roAssociativeArray refcnt=3 count:67',
                     'ccsetting        roString refcnt=1 val:"On"'
@@ -404,6 +450,9 @@ describe('CrashlogFile', () => {
             
             
             Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941) 
+            Some other stuffff:
+            we weee
+            woo-woo
             Backtrace: 
             #1  Function doupdatecaptionsmode() As Void 
                 file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941) 
@@ -422,7 +471,7 @@ describe('CrashlogFile', () => {
                         scope: 'Function doupdatecaptionsmode() As Void',
                         reference: {
                             length: 51,
-                            offset: 1240,
+                            offset: 1312,
                             pkgLocation: {
                                 character: 0,
                                 line: 2940,
@@ -431,11 +480,11 @@ describe('CrashlogFile', () => {
                             range: {
                                 end: {
                                     character: 78,
-                                    line: 32
+                                    line: 35
                                 },
                                 start: {
                                     character: 27,
-                                    line: 32
+                                    line: 35
                                 }
                             }
                         }
@@ -444,7 +493,7 @@ describe('CrashlogFile', () => {
                         scope: 'Function onfullscreenanimationfinished() As Void',
                         reference: {
                             length: 50,
-                            offset: 1386,
+                            offset: 1458,
                             pkgLocation: {
                                 character: 0,
                                 line: 740,
@@ -453,11 +502,11 @@ describe('CrashlogFile', () => {
                             range: {
                                 end: {
                                     character: 77,
-                                    line: 34
+                                    line: 37
                                 },
                                 start: {
                                     character: 27,
-                                    line: 34
+                                    line: 37
                                 }
                             }
                         }
