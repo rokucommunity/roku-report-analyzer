@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.0](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.2.4...0.3.0) - 2022-10-20
+### Added
+ - Initial implementation of parseCrashes() ([#1](https://github.com/rokucommunity/roku-report-analyzer/pull/1))
+### Changed
+ - upgrade to [brighterscript@0.60.3](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0603---2022-10-20)
+
+
+
 ## [0.2.4](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.2.3...0.2.4) - 2022-09-02
 ### Changed
  - upgrade to [brighterscript@0.57.0](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0570---2022-09-02). Notable changes since 0.55.1:
