@@ -48,6 +48,31 @@ export interface FileReference {
     srcLocation?: Location;
 }
 
+
+export interface CrashReport {
+    /**
+     * The error message as it appears right before the backtrace.
+     * @example "Execution timeout (runtime error &h23) in complib2:/components/Screens/PlaybackUltra/PlaybackUltra.brs(1151)"
+    */
+    errorMessage: string;
+    /**
+     * The stack trace in reverse scope order.
+    */
+    stackFrame: StackFrame[];
+    /**
+     * Each one of the local variables and their metadata
+    */
+    localVariables: LocalVariable[];
+    applicationVersions: ApplicationVersionCount[];
+    /**
+     * The count information for each of the hardware platforms
+    */
+    count: {
+        total: number;
+        details: Array < { count: number; hardwarePlatform: string } >;
+    };
+}
+
 export interface Location {
     path: string;
     line: number;
@@ -56,4 +81,47 @@ export interface Location {
 
 export interface Reporter {
     generate(runner: Runner): any;
+}
+
+export interface StackFrame {
+    /**
+     * The scope level where the error occurred.
+     * @example Function startPlayback() As Void
+    */
+    scope: string;
+    /**
+     * Pointer to the `FileReference` in `CrashlogFile.references` that contains the location of the error.
+     * `undefined` if not found in `CrashlogFile.references`.
+    */
+    reference: FileReference | undefined;
+}
+
+export interface LocalVariable {
+    name: string;
+    /**
+     * The additional data that is available for the variable.
+     * @example "roAssociativeArray refcnt=3 count:67"
+     */
+    // For now just use the raw value. Maybe we can parse this further later.
+    metadata: string;
+}
+
+export interface ApplicationVersion {
+    major: number;
+    minor: number;
+    build: number;
+}
+
+/**
+ * Represents the amount of crashes for each application version.
+ */
+export interface ApplicationVersionCount {
+    count: number;
+    version: ApplicationVersion | undefined;
+    /**
+     * The application version as it appears on the crashlog.
+     * Useful when the version is not parsable.
+     * @example "ver2"
+    */
+    rawVersion: string;
 }

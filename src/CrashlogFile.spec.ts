@@ -137,6 +137,408 @@ describe('CrashlogFile', () => {
         });
     });
 
+    describe('parseCrashes', () => {
+        it('empty section', () => {
+            expect(file.parseHardwarePlatformSection([])).to.be.empty;
+            expect(file.parseHardwarePlatformSection(['', ''])).to.be.empty;
+            expect(file.parseHardwarePlatformSection(['', '', ''])).to.be.empty;
+        });
+
+        describe('parses the application version section', () => {
+            it('empty section', () => {
+                expect(file.parseApplicationVersionSection([])).to.eql([]);
+                expect(file.parseApplicationVersionSection([''])).to.eql([]);
+                expect(file.parseApplicationVersionSection(['', ''])).to.eql([]);
+            });
+
+            it('normal versions', () => {
+                expect(file.parseApplicationVersionSection([
+                    '1\t3.6.5',
+                    '2\t0,0,1',
+                    '5\t4;2;0',
+                    '3\t2.6.590'
+                ])).to.eql(
+                    [
+                        {
+                            count: 1,
+                            version: { major: 3, minor: 6, build: 5 },
+                            rawVersion: '3.6.5'
+                        },
+                        {
+                            count: 2,
+                            version: { major: 0, minor: 0, build: 1 },
+                            rawVersion: '0,0,1'
+                        },
+                        {
+                            count: 5,
+                            version: { major: 4, minor: 2, build: 0 },
+                            rawVersion: '4;2;0'
+                        },
+                        {
+                            count: 3,
+                            version: { major: 2, minor: 6, build: 590 },
+                            rawVersion: '2.6.590'
+                        }
+                    ]
+                );
+            });
+
+            it('unparsable versions', () => {
+                expect(file.parseApplicationVersionSection([
+                    '1\t3 6 5',
+                    '2\t0\t0\t1',
+                    '5\tver4.2.0',
+                    '3\t2.6.590-hotfix',
+                    '1\ta.4.6'
+                ])).to.eql(
+                    [
+                        {
+                            count: 1,
+                            version: undefined,
+                            rawVersion: '3 6 5'
+                        },
+                        {
+                            count: 2,
+                            version: undefined,
+                            rawVersion: '0\t0\t1'
+                        },
+                        {
+                            count: 5,
+                            version: undefined,
+                            rawVersion: 'ver4.2.0'
+                        },
+                        {
+                            count: 3,
+                            version: undefined,
+                            rawVersion: '2.6.590-hotfix'
+                        },
+                        {
+                            count: 1,
+                            version: undefined,
+                            rawVersion: 'a.4.6'
+                        }
+                    ]
+                );
+            });
+        });
+
+        describe('parses the stack trace section', () => {
+            it('empty section', () => {
+                expectContainSubset(file.parseStackTraceSection([]), { errorMessage: '', stackFrame: [], localVariables: [] });
+                expectContainSubset(file.parseStackTraceSection(['']), { errorMessage: '', stackFrame: [], localVariables: [] });
+                expectContainSubset(file.parseStackTraceSection(['', '']), { errorMessage: '', stackFrame: [], localVariables: [] });
+            });
+
+            it('still includes functions even if file/line is unparsable', () => {
+                const section = [
+                    'Backtrace:',
+                    '#1  Function doupdatecaptionsmode() As Void',
+                    'asdasdasd',
+                    'file/line: pkgAAAAAA/components/playerscreen/PlayerScreen.brs(2941)',
+                    '#0  Function onfullscreenanimationfinished() As Void',
+                    'file/line: pkgAAAAAAAA/components/playerscreen/PlayerScreen.brs(741)',
+                    'Local Variables:',
+                    '',
+                    'global           Interface:ifGlobal',
+                    'm                roAssociativeArray refcnt=3 count:67',
+                    'ccsetting        roString refcnt=1 val:"On"'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: '',
+                    stackFrame: [
+                        {
+                            scope: 'Function doupdatecaptionsmode() As Void',
+                            // Can't get the reference if parse() has not been called.
+                            reference: undefined
+                        },
+                        {
+                            scope: 'Function onfullscreenanimationfinished() As Void',
+                            reference: undefined
+                        }
+                    ],
+                    localVariables: [
+                        {
+                            name: 'global',
+                            metadata: 'Interface:ifGlobal'
+                        },
+                        {
+                            name: 'm',
+                            metadata: 'roAssociativeArray refcnt=3 count:67'
+                        },
+                        {
+                            name: 'ccsetting',
+                            metadata: 'roString refcnt=1 val:"On"'
+                        }
+                    ]
+                });
+            });
+
+            it('no error message', () => {
+                const section = [
+                    'Backtrace:',
+                    '#1  Function doupdatecaptionsmode() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    '#0  Function onfullscreenanimationfinished() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(741)',
+                    'Local Variables:',
+                    '',
+                    'global           Interface:ifGlobal',
+                    'm                roAssociativeArray refcnt=3 count:67',
+                    'ccsetting        roString refcnt=1 val:"On"'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: '',
+                    stackFrame: [
+                        {
+                            scope: 'Function doupdatecaptionsmode() As Void',
+                            // Can't get the reference if parse() has not been called.
+                            reference: undefined
+                        },
+                        {
+                            scope: 'Function onfullscreenanimationfinished() As Void',
+                            reference: undefined
+                        }
+                    ],
+                    localVariables: [
+                        {
+                            name: 'global',
+                            metadata: 'Interface:ifGlobal'
+                        },
+                        {
+                            name: 'm',
+                            metadata: 'roAssociativeArray refcnt=3 count:67'
+                        },
+                        {
+                            name: 'ccsetting',
+                            metadata: 'roString refcnt=1 val:"On"'
+                        }
+                    ]
+                });
+            });
+
+            it('no backtrace', () => {
+                const section = [
+                    'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    'Local Variables:',
+                    'global           Interface:ifGlobal',
+                    'm                roAssociativeArray refcnt=3 count:67',
+                    'ccsetting        roString refcnt=1 val:"On"'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    stackFrame: [],
+                    localVariables: [
+                        {
+                            name: 'global',
+                            metadata: 'Interface:ifGlobal'
+                        },
+                        {
+                            name: 'm',
+                            metadata: 'roAssociativeArray refcnt=3 count:67'
+                        },
+                        {
+                            name: 'ccsetting',
+                            metadata: 'roString refcnt=1 val:"On"'
+                        }
+                    ]
+                });
+            });
+
+            it('no local variables', () => {
+                const section = [
+                    'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    'Backtrace:',
+                    '#1  Function doupdatecaptionsmode() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    '#0  Function onfullscreenanimationfinished() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(741)'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    stackFrame: [
+                        {
+                            scope: 'Function doupdatecaptionsmode() As Void',
+                            // Can't get the reference if parse() has not been called.
+                            reference: undefined
+                        },
+                        {
+                            scope: 'Function onfullscreenanimationfinished() As Void',
+                            reference: undefined
+                        }
+                    ],
+                    localVariables: []
+                });
+            });
+
+            it('normal section', () => {
+                const section = [
+                    'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    'Backtrace:',
+                    '#1  Function doupdatecaptionsmode() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    '#0  Function onfullscreenanimationfinished() As Void',
+                    'file/line: pkg:/components/playerscreen/PlayerScreen.brs(741)',
+                    'Local Variables:',
+                    'global           Interface:ifGlobal',
+                    'm                roAssociativeArray refcnt=3 count:67',
+                    'ccsetting        roString refcnt=1 val:"On"'
+                ];
+
+                expectContainSubset(file.parseStackTraceSection(section), {
+                    errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                    stackFrame: [
+                        {
+                            scope: 'Function doupdatecaptionsmode() As Void',
+                            // Can't get the reference if parse() has not been called.
+                            reference: undefined
+                        },
+                        {
+                            scope: 'Function onfullscreenanimationfinished() As Void',
+                            reference: undefined
+                        }
+                    ],
+                    localVariables: [
+                        {
+                            name: 'global',
+                            metadata: 'Interface:ifGlobal'
+                        },
+                        {
+                            name: 'm',
+                            metadata: 'roAssociativeArray refcnt=3 count:67'
+                        },
+                        {
+                            name: 'ccsetting',
+                            metadata: 'roString refcnt=1 val:"On"'
+                        }
+                    ]
+                });
+            });
+        });
+
+        it('structures crashes correctly', () => {
+            file.parse(`
+                18 \tFunction doupdatecaptionsmode() As Void; pkg:/components/playerscreen/PlayerScreen.brs(2941)
+                ____________________________________________________
+            
+                count\t\tHardware Platform
+                --------------------------------
+                        3\tMalone
+                        3\tMarlin
+                        2\tMidland
+                        2\tNemo
+                        1\tTyler
+                        1\tAmarillo_4K
+                        1\tLittlefield
+                        1\tLiberty
+                        1\tGilbert
+                        1\tLongview
+                        1\tGilbert 4K
+                        1\tBenjamin
+            
+            
+                count\t\tApplication Version
+                -----------------------------
+                        18\t2.6.6
+            
+            
+                Stack Trace
+                -------------------------------------------------
+            
+            
+            Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941) 
+            Some other stuffff:
+            we weee
+            woo-woo
+            Backtrace: 
+            #1  Function doupdatecaptionsmode() As Void 
+                file/line: pkg:/components/playerscreen/PlayerScreen.brs(2941) 
+            #0  Function onfullscreenanimationfinished() As Void 
+                file/line: pkg:/components/playerscreen/PlayerScreen.brs(741) 
+            Local Variables: 
+            global           Interface:ifGlobal 
+            m                roAssociativeArray refcnt=3 count:67 
+            ccsetting        roString refcnt=1 val:"On"
+            `);
+
+            expectContainSubset(file.crashes[0], {
+                errorMessage: 'Interface not a member of BrightScript Component (runtime error &hf3) in pkg:/components/playerscreen/PlayerScreen.brs(2941)',
+                stackFrame: [
+                    {
+                        scope: 'Function doupdatecaptionsmode() As Void',
+                        reference: {
+                            length: 51,
+                            offset: 1312,
+                            pkgLocation: {
+                                character: 0,
+                                line: 2940,
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs'
+                            },
+                            range: {
+                                end: {
+                                    character: 78,
+                                    line: 35
+                                },
+                                start: {
+                                    character: 27,
+                                    line: 35
+                                }
+                            }
+                        }
+                    },
+                    {
+                        scope: 'Function onfullscreenanimationfinished() As Void',
+                        reference: {
+                            length: 50,
+                            offset: 1458,
+                            pkgLocation: {
+                                character: 0,
+                                line: 740,
+                                path: 'pkg:/components/playerscreen/PlayerScreen.brs'
+                            },
+                            range: {
+                                end: {
+                                    character: 77,
+                                    line: 37
+                                },
+                                start: {
+                                    character: 27,
+                                    line: 37
+                                }
+                            }
+                        }
+                    }
+                ],
+                localVariables: [
+                    { name: 'global', metadata: 'Interface:ifGlobal' },
+                    { name: 'm', metadata: 'roAssociativeArray refcnt=3 count:67' },
+                    { name: 'ccsetting', metadata: 'roString refcnt=1 val:"On"' }
+                ],
+                applicationVersions: [{ count: 18, version: { major: 2, minor: 6, build: 6 }, rawVersion: '2.6.6' }],
+                count: {
+                    total: 18,
+                    details: [
+                        { count: 3, hardwarePlatform: 'Malone' },
+                        { count: 3, hardwarePlatform: 'Marlin' },
+                        { count: 2, hardwarePlatform: 'Midland' },
+                        { count: 2, hardwarePlatform: 'Nemo' },
+                        { count: 1, hardwarePlatform: 'Tyler' },
+                        { count: 1, hardwarePlatform: 'Amarillo_4K' },
+                        { count: 1, hardwarePlatform: 'Littlefield' },
+                        { count: 1, hardwarePlatform: 'Liberty' },
+                        { count: 1, hardwarePlatform: 'Gilbert' },
+                        { count: 1, hardwarePlatform: 'Longview' },
+                        { count: 1, hardwarePlatform: 'Gilbert 4K' },
+                        { count: 1, hardwarePlatform: 'Benjamin' }
+                    ]
+                }
+            });
+        });
+    });
+
     describe('process', () => {
         it('keeps running when no sourcemaps were found', async () => {
             file.parse(`

@@ -1,8 +1,9 @@
 import * as path from 'path';
-import type { FileReference } from './interfaces';
+import type { ApplicationVersionCount, CrashReport, FileReference, LocalVariable, StackFrame } from './interfaces';
 import type { Position } from 'brighterscript';
 import type { Runner } from './Runner';
 import { util as bscUtil } from 'brighterscript';
+import { util } from './util';
 
 export class CrashlogFile {
     public constructor(
@@ -21,6 +22,11 @@ export class CrashlogFile {
     public destPath: string | undefined;
 
     /**
+     * The date where the crashes occurred
+    */
+    public date: string | undefined;
+
+    /**
      * The full text contents of this file
      */
     public fileContents = '';
@@ -29,6 +35,8 @@ export class CrashlogFile {
      * The list of pkg paths found in the parsed fileContents
      */
     public references: Array<FileReference> = [];
+
+    public crashes: Array<CrashReport> = [];
 
     /**
      * Compute the dest path of this log file
@@ -46,6 +54,7 @@ export class CrashlogFile {
             const date = /oscrashes.(\d\d\d\d-\d\d-\d\d)/i.exec(dateFolderName)?.[1];
             if (date) {
                 this.destPath = `${appName}/${date}-${firmware}${ext}`;
+                this.date = date;
             }
         }
     }
@@ -79,6 +88,91 @@ export class CrashlogFile {
             const line = lines[i];
             this.findPkgPaths(line, i);
         }
+
+        this.parseCrashes();
+    }
+
+    private parseCrashes() {
+        this.crashes = [];
+        let contents = this.fileContents;
+
+        let crashReportBlocks = contents?.split(/\s*___+\s*/) ?? [];
+
+        // Filter out crash reports without stack trace
+        crashReportBlocks = crashReportBlocks.filter(block => !block.includes('StackTrace missing'));
+
+        crashReportBlocks.forEach(crashReportBlock => {
+            const crashReportBlockSections: Array<{ sectionType: CrashReportSectionType; lines: string[] }> = [];
+            const blockLines = crashReportBlock.split(/\r?\n+/).map(x => x.trim());
+
+            // Separate the block in three sections:
+            // Hardware Platform, Application Version, and Stack Trace
+            let currentSection: CrashReportSectionType | undefined;
+            let foundSectionHeader = false;
+            for (const line of blockLines) {
+                if (/\s*count\s+Hardware Platform/.test(line)) {
+                    currentSection = CrashReportSectionType.HardwarePlatform;
+                    foundSectionHeader = true;
+                } else if (/\s*count\s+Application Version/.test(line)) {
+                    currentSection = CrashReportSectionType.ApplicationVersion;
+                    foundSectionHeader = true;
+                } else if (/\s*Stack Trace/.test(line)) {
+                    currentSection = CrashReportSectionType.StackTrace;
+                    foundSectionHeader = true;
+                } else {
+                    if (foundSectionHeader && currentSection && !/\s*---+\s*/.exec(line)) {
+                        let crashReportSectionIndex = crashReportBlockSections.findIndex(x => x.sectionType === currentSection);
+
+                        if (crashReportSectionIndex === -1) {
+                            crashReportBlockSections.push({
+                                sectionType: currentSection,
+                                lines: [line]
+                            });
+                        } else {
+                            crashReportBlockSections[crashReportSectionIndex].lines.push(line);
+                        }
+                    }
+                }
+            }
+
+            // Skip processing blocks without sections, e.g: everything before the first crash
+            if (crashReportBlockSections.length === 0) {
+                return;
+            }
+
+            let crashReport: CrashReport = {
+                applicationVersions: [],
+                errorMessage: '',
+                stackFrame: [],
+                localVariables: [],
+                count: {
+                    total: 0,
+                    details: []
+                }
+            };
+
+            // Process each block section
+            for (const crashReportSection of crashReportBlockSections) {
+                switch (crashReportSection.sectionType) {
+                    case CrashReportSectionType.HardwarePlatform:
+                        crashReport.count.details = this.parseHardwarePlatformSection(crashReportSection.lines);
+                        break;
+                    case CrashReportSectionType.ApplicationVersion:
+                        const applicationVersions = this.parseApplicationVersionSection(crashReportSection.lines);
+                        crashReport.applicationVersions = applicationVersions;
+                        crashReport.count.total = applicationVersions.reduce((acc, curr) => acc + curr.count, 0);
+                        break;
+                    case CrashReportSectionType.StackTrace:
+                        const { errorMessage, stackFrame: stackTrace, localVariables } = this.parseStackTraceSection(crashReportSection.lines);
+                        crashReport.errorMessage = errorMessage;
+                        crashReport.stackFrame = stackTrace;
+                        crashReport.localVariables = localVariables;
+                        break;
+                }
+            }
+
+            this.crashes.push(crashReport);
+        });
     }
 
     /**
@@ -125,4 +219,186 @@ export class CrashlogFile {
             });
         }
     }
+
+    /**
+     * Parses the hardware platform section.
+     * Extracts the crash count for each platform.
+    */
+    public parseHardwarePlatformSection(sectionLines: string[]): CrashReport['count']['details'] {
+        return sectionLines.filter(l => l !== '').map(line => {
+            const [count, ...platformAsArray] = line.split(/\s+/);
+            const platformCodeName = platformAsArray.join(' ').trim();
+            return {
+                count: parseInt(count),
+                hardwarePlatform: platformCodeName
+            };
+        });
+    }
+
+    /**
+     * Parses the application version section.
+     * Extracts the crash count for each application version.
+    */
+    public parseApplicationVersionSection(lines: string[]): ApplicationVersionCount[] {
+        const applicationVersions = lines.filter(l => l !== '').map(line => {
+            const count = line.split(/\s+/)[0];
+            const rawVersion = line.substring(count.length).trim();
+            const splittedVersion = rawVersion.split(/\.|,|;/);
+
+            let version;
+            if (splittedVersion.length === 3 && splittedVersion.every(x => Number.isInteger(Number(x)))) {
+                version = { major: parseInt(splittedVersion[0]), minor: parseInt(splittedVersion[1]), build: parseInt(splittedVersion[2]) };
+            }
+
+            return { count: parseInt(count), version: version, rawVersion: rawVersion } as ApplicationVersionCount;
+        });
+
+        return applicationVersions;
+    }
+
+    /**
+     * Parses the stack trace section.
+     * Extracts the error message, the backtrace and the local variables of the crash.
+    */
+    public parseStackTraceSection(lines: string[]): ParsedStackTraceSection {
+        const parsedStackTraceSection: ParsedStackTraceSection = {
+            errorMessage: '',
+            stackFrame: [],
+            localVariables: []
+        };
+
+        lines = lines.filter(l => l !== '');
+
+        if (lines.length === 0) {
+            return { errorMessage: '', stackFrame: [], localVariables: [] };
+        }
+
+        const firstLine = lines[0];
+
+        // In case the error message is missing
+        if (firstLine === 'Local Variables:' || firstLine === 'Backtrace:') {
+            parsedStackTraceSection.errorMessage = '';
+        } else {
+            parsedStackTraceSection.errorMessage = firstLine;
+            lines.shift();
+        }
+
+        const stackTraceSections: Array<{ sectionType: StackTraceSectionType; lines: string[] }> = [];
+
+        let currentSection: StackTraceSectionType | undefined;
+        let foundSectionHeader = false;
+
+        // Separate the block in two sections: Backtrace and LocalVariables
+        for (const line of lines) {
+            if (line === 'Local Variables:') {
+                currentSection = StackTraceSectionType.LocalVariables;
+                foundSectionHeader = true;
+            } else if (line === 'Backtrace:') {
+                currentSection = StackTraceSectionType.BackTrace;
+                foundSectionHeader = true;
+            } else {
+                if (foundSectionHeader && currentSection) {
+                    let sectionIndex = stackTraceSections.findIndex(x => x.sectionType === currentSection);
+                    if (sectionIndex === -1) {
+                        stackTraceSections.push({
+                            sectionType: currentSection,
+                            lines: [line]
+                        });
+                    } else {
+                        stackTraceSections[sectionIndex].lines.push(line);
+                    }
+                }
+            }
+        }
+
+        // Process each section
+        for (const stackTraceSection of stackTraceSections) {
+            switch (stackTraceSection.sectionType) {
+                case StackTraceSectionType.LocalVariables:
+                    parsedStackTraceSection.localVariables = this.parseStackTraceLocalVariables(stackTraceSection.lines);
+                    break;
+                case StackTraceSectionType.BackTrace:
+                    parsedStackTraceSection.stackFrame = this.parseStackFrames(stackTraceSection.lines);
+                    break;
+            }
+        }
+
+        return parsedStackTraceSection;
+    }
+
+    /**
+     * Parses the stack frames.
+     * Extracts the scope and location of each stack frame.
+    */
+    public parseStackFrames(lines: string[]): StackFrame[] {
+        const stackTrace: StackFrame[] = [];
+
+        let stackFrame: StackFrame = { scope: '', reference: undefined };
+
+        for (const line of lines) {
+            if (/#[0-9]+\s+./.exec(line)) {
+                const [_, ...scopeAsArray] = line.split(/\s+/);
+                stackFrame.scope = scopeAsArray.join(' ').trim();
+            } else if (/file\/line:\s+./.exec(line)) {
+                const [_, ...pkgLocationAsArray] = line.split(/\s+/);
+
+                const match = /(\w+:\/.*?)\((\d+)\)/.exec(pkgLocationAsArray.join(' ').trim());
+                if (match) {
+                    // We need the range to calculate the reference index. To generate the range, we need the line number.
+                    // We don't have access to the exact line number because we separated the stack trace
+                    // at the beginning `parseCrashes()`, removing any unnecesary information.
+                    // So we calculate it here from `this.fileContents`.
+                    const fileContentsList = this.fileContents.split(/\r?\n/);
+                    const originalLineIndex = fileContentsList.findIndex(l => l.includes(line));
+                    const originalLineMatch = /(\w+:\/.*?)\((\d+)\)/.exec(fileContentsList[originalLineIndex]);
+
+                    if (originalLineMatch) {
+                        const range = bscUtil.createRange(originalLineIndex, originalLineMatch.index, originalLineIndex, originalLineMatch.index + originalLineMatch[0].length);
+                        stackFrame.reference = this.references
+                            .find(ref => util.areRangesEqual(ref.range, range) &&
+                                ref.offset === this.positionToOffset(range.start) &&
+                                ref.length === match[0].length);
+                    }
+                }
+                // Shallow copy to avoid object reference problem.
+                stackTrace.push({ ...stackFrame });
+            }
+        }
+
+        return stackTrace;
+    }
+
+    /**
+     * Parses the local variables section.
+     * Extracts the local variables and their metadata.
+    */
+    public parseStackTraceLocalVariables(lines: string[]): LocalVariable[] {
+        const localVariables: LocalVariable[] = [];
+
+        for (const line of lines) {
+            const [name, ...metadataAsArray] = line.split(/\s+/);
+            const metadata = metadataAsArray.join(' ').trim();
+
+            localVariables.push({ name: name, metadata: metadata });
+        }
+
+        return localVariables;
+    }
+}
+
+enum CrashReportSectionType {
+    HardwarePlatform = 'HardwarePlatform',
+    ApplicationVersion = 'ApplicationVersion',
+    StackTrace = 'StackTrace'
+}
+
+enum StackTraceSectionType {
+    BackTrace = 'BackTrace',
+    LocalVariables = 'LocalVariables'
+}
+
+interface ParsedStackTraceSection {
+    errorMessage: string;
+    stackFrame: StackFrame[];
+    localVariables: LocalVariable[];
 }
