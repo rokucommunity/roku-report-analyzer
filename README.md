@@ -1,7 +1,7 @@
 # roku-report-analyzer
 Leverage sourcemaps to translate pkg paths from Roku crash logs into original file paths
 
-[![build status](https://img.shields.io/github/workflow/status/rokucommunity/roku-report-analyzer/build.svg?logo=github)](https://github.com/rokucommunity/roku-report-analyzer/actions?query=workflow%3Abuild)
+[![build status](https://img.shields.io/github/actions/workflow/status/rokucommunity/roku-report-analyzer/build.yml?branch=master&logo=github)](https://github.com/rokucommunity/roku-report-analyzer/actions?query=workflow%3Abuild)
 [![coverage status](https://img.shields.io/coveralls/github/rokucommunity/roku-report-analyzer?logo=coveralls)](https://coveralls.io/github/rokucommunity/roku-report-analyzer?branch=master)
 [![monthly downloads](https://img.shields.io/npm/dm/roku-report-analyzer.svg?sanitize=true&logo=npm&logoColor=)](https://npmcharts.com/compare/roku-report-analyzer?minimal=true)
 [![npm version](https://img.shields.io/npm/v/roku-report-analyzer.svg?logo=npm)](https://www.npmjs.com/package/roku-report-analyzer)
