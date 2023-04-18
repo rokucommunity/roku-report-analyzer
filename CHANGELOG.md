@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.6](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.3.5...v0.3.6) - 2023-04-18
+### Changed
+ - upgrade to [brighterscript@0.64.2](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0642---2023-04-18). Notable changes since 0.62.0:
+     - Bump xml2js from 0.4.23 to 0.5.0 ([brighterscript#790](https://github.com/rokucommunity/brighterscript/pull/790))
+
+
+
 ## [0.3.5](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.3.4...v0.3.5) - 2023-03-17
 ### Changed
  - upgrade to [@rokucommunity/logger@0.3.2](https://github.com/rokucommunity/logger/blob/master/CHANGELOG.md#032---2023-03-16). Notable changes since 0.3.1:
