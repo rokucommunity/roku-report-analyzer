@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.7](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.3.6...v0.3.7) - 2023-05-17
+### Changed
+ - upgrade to [@rokucommunity/logger@0.3.3](https://github.com/rokucommunity/logger/blob/master/CHANGELOG.md#033---2023-05-17)
+ - upgrade to [brighterscript@0.65.0](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0650---2023-05-17). Notable changes since 0.64.2:
+     - npm audit fixes. upgrade to coveralls-next ([#brighterscript43756d8](https://github.com/rokucommunity/brighterscript/commit/43756d8))
+     - Improves performance in symbol table fetching ([brighterscript#797](https://github.com/rokucommunity/brighterscript/pull/797))
+
+
+
 ## [0.3.6](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.3.5...v0.3.6) - 2023-04-18
 ### Changed
  - upgrade to [brighterscript@0.64.2](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0642---2023-04-18). Notable changes since 0.62.0:
