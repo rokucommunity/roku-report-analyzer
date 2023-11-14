@@ -1,6 +1,6 @@
 {
   "name": "roku-report-analyzer",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "Analyze roku crashlogs and leverage sourcemaps to translate pkg paths into original file paths",
   "license": "MIT",
   "author": "RokuCommunity",
