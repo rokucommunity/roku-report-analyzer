@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.10](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.3.9...v0.3.10) - 2023-12-07
+### Changed
+ - upgrade to [brighterscript@0.65.12](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#06512---2023-12-07). Notable changes since 0.65.10:
+     - Correct RANGE in template string when dealing with quotes in annotations ([brighterscript#975](https://github.com/rokucommunity/brighterscript/pull/975))
+
+
+
 ## [0.3.9](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.3.8...v0.3.9) - 2023-11-14
 ### Changed
  - upgrade to [brighterscript@0.65.10](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#06510---2023-11-14). Notable changes since 0.65.8:
