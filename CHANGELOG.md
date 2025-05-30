@@ -6,6 +6,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.12](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.11...v0.3.12) - 2025-05-30
+### Changed
+ - upgrade to [@rokucommunity/logger@0.3.11](https://github.com/rokucommunity/logger/blob/master/CHANGELOG.md#0311---2025-05-05). Notable changes since 0.3.3:
+     - Keep the timestamp braces outside of the colors ([#10](https://github.com/rokucommunity/roku-report-analyzer/pull/10))
+     - fix node14 ([#8](https://github.com/rokucommunity/roku-report-analyzer/pull/8))
+ - upgrade to [brighterscript@0.69.9](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0699---2025-05-09). Notable changes since 0.65.23:
+     - Prevent runtime crash for non-referencable funcs in ternary and null coalescing ([#1474](https://github.com/rokucommunity/roku-report-analyzer/pull/1474))
+     - Adds Alias statement syntax from v1 to v0 ([#1430](https://github.com/rokucommunity/roku-report-analyzer/pull/1430))
+     - Significantly improve the performance of standardizePath ([#1425](https://github.com/rokucommunity/roku-report-analyzer/pull/1425))
+     - Backport v1 typecast syntax to v0 ([#1421](https://github.com/rokucommunity/roku-report-analyzer/pull/1421))
+     - Prevent running the lsp project in a worker thread ([#1423](https://github.com/rokucommunity/roku-report-analyzer/pull/1423))
+     - Add `validate` flag to ProgramBuilder.run() ([#1409](https://github.com/rokucommunity/roku-report-analyzer/pull/1409))
+     - Add more convenience exports from vscode-languageserver ([#1359](https://github.com/rokucommunity/roku-report-analyzer/pull/1359))
+     - Fix issues with the ast walkArray function ([#1347](https://github.com/rokucommunity/roku-report-analyzer/pull/1347))
+     - Flag using devDependency in production code ([#1222](https://github.com/rokucommunity/roku-report-analyzer/pull/1222))
+     - Fix crash when diagnostic is missing range ([#1174](https://github.com/rokucommunity/roku-report-analyzer/pull/1174))
+     - Fix node14 issues ([#1153](https://github.com/rokucommunity/roku-report-analyzer/pull/1153))
+     - Support when tokens have null ranges ([#1072](https://github.com/rokucommunity/roku-report-analyzer/pull/1072))
+### Fixed
+ - fix node14 ([#2](https://github.com/rokucommunity/roku-report-analyzer/pull/2))
+
+
+
 ## [0.3.11](https://github.com/rokucommunity/roku-report-analyzer/compare/v0.3.10...v0.3.11) - 2024-03-01
 ### Changed
  - upgrade to [brighterscript@0.65.23](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#06523---2024-02-29). Notable changes since 0.65.12:
