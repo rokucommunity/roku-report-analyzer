@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.13](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.12...v0.3.13) - 2025-06-03
+### Changed
+ - upgrade to [brighterscript@0.69.10](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#06910---2025-06-03). Notable changes since 0.69.9:
+     - chore: Shared CI remove merged check on publish releases ([#1494](https://github.com/rokucommunity/roku-report-analyzer/pull/1494))
+
+
+
 ## [0.3.12](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.11...v0.3.12) - 2025-05-30
 ### Changed
  - upgrade to [@rokucommunity/logger@0.3.11](https://github.com/rokucommunity/logger/blob/master/CHANGELOG.md#0311---2025-05-05). Notable changes since 0.3.3:
