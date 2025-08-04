@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.15](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.14...v0.3.15) - 2025-08-04
+### Changed
+ - upgrade to [brighterscript@0.69.13](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#06913---2025-08-04). Notable changes since 0.69.11:
+     - Add projectDiscoveryExclude setting and files.watcherExclude support ([#1535](https://github.com/rokucommunity/roku-report-analyzer/pull/1535))
+     - Fix signature help crash on malformed function declarations ([#1536](https://github.com/rokucommunity/roku-report-analyzer/pull/1536))
+     - Add max depth configuration for Roku project discovery ([#1533](https://github.com/rokucommunity/roku-report-analyzer/pull/1533))
+     - chore: Add copilot files ([#1534](https://github.com/rokucommunity/roku-report-analyzer/pull/1534))
+     - Fix discovery when `projects` is empty ([#1529](https://github.com/rokucommunity/roku-report-analyzer/pull/1529))
+
+
+
 ## [0.3.14](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.13...v0.3.14) - 2025-07-03
 ### Changed
  - upgrade to [brighterscript@0.69.11](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#06911---2025-07-03). Notable changes since 0.69.10:
