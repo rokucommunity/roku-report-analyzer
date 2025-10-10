@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.16](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.15...v0.3.16) - 2025-10-10
+### Changed
+ - upgrade to [brighterscript@0.70.2](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0702---2025-10-10). Notable changes since 0.69.13:
+
+
+
 ## [0.3.15](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.14...v0.3.15) - 2025-08-04
 ### Changed
  - upgrade to [brighterscript@0.69.13](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#06913---2025-08-04). Notable changes since 0.69.11:
