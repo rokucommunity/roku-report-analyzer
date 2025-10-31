@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.17](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.16...v0.3.17) - 2025-10-31
+### Changed
+ - upgrade to [brighterscript@0.70.3](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0703---2025-10-31). Notable changes since 0.70.2:
+     - Fix crash when bsc plugin in worker loads another version of bsc ([#1579](https://github.com/rokucommunity/roku-report-analyzer/pull/1579))
+     - Fix recursive const and enum resolution during transpilation ([#1578](https://github.com/rokucommunity/roku-report-analyzer/pull/1578))
+     - chore: support OIDC for publishing ([#1582](https://github.com/rokucommunity/roku-report-analyzer/pull/1582))
+
+
+
 ## [0.3.16](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.15...v0.3.16) - 2025-10-10
 ### Changed
  - upgrade to [brighterscript@0.70.2](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0702---2025-10-10). Notable changes since 0.69.13:
