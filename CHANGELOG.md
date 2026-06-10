@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.20](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.19...v0.3.20) - 2026-06-10
+### Changed
+ - upgrade to [@rokucommunity/logger@0.3.13](https://github.com/rokucommunity/logger/blob/master/CHANGELOG.md#0313---2026-06-08). Notable changes since 0.3.11:
+     - Security fixes ([#27](https://github.com/rokucommunity/logger/pull/27), [#26](https://github.com/rokucommunity/logger/pull/26), [#24](https://github.com/rokucommunity/logger/pull/24), [#21](https://github.com/rokucommunity/logger/pull/21), [#19](https://github.com/rokucommunity/logger/pull/19), [#17](https://github.com/rokucommunity/logger/pull/17), [#16](https://github.com/rokucommunity/logger/pull/16))
+ - upgrade to [brighterscript@0.72.5](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0725---2026-06-10). Notable changes since 0.72.1:
+     - Security fixes ([#1723](https://github.com/rokucommunity/brighterscript/pull/1723), [#1722](https://github.com/rokucommunity/brighterscript/pull/1722), [#1720](https://github.com/rokucommunity/brighterscript/pull/1720), [#1718](https://github.com/rokucommunity/brighterscript/pull/1718), [#1714](https://github.com/rokucommunity/brighterscript/pull/1714))
+
+
+
 ## [0.3.19](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.18...v0.3.19) - 2026-05-11
 ### Changed
  - upgrade to [brighterscript@0.72.1](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0721---2026-05-11). Notable changes since 0.70.4:
