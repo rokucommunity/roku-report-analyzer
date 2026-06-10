@@ -6,6 +6,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [0.3.20](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.19...v0.3.20) - 2026-06-10
+### Changed
+ - upgrade to [@rokucommunity/logger@0.3.13](https://github.com/rokucommunity/logger/blob/master/CHANGELOG.md#0313---2026-06-08). Notable changes since 0.3.11:
+     - chore: Support dispatch workflows ([#15](https://github.com/rokucommunity/logger/pull/15))
+     - chore: Shared CI - remove merged check on publish releases ([#14](https://github.com/rokucommunity/logger/pull/14))
+     - Update minimum audit threshold ([#27](https://github.com/rokucommunity/logger/pull/27))
+     - Accept GHSA-w5hq-g745-h8pq (uuid <11.1.1) advisory ([#26](https://github.com/rokucommunity/logger/pull/26))
+     - Slim security-audit-required to a single conditional check ([#24](https://github.com/rokucommunity/logger/pull/24))
+     - Only block release-branch PRs on Security Audit failures ([#21](https://github.com/rokucommunity/logger/pull/21))
+     - Security Audit workflow ([#19](https://github.com/rokucommunity/logger/pull/19))
+     - Security enhancements ([#17](https://github.com/rokucommunity/logger/pull/17))
+     - chore: support OIDC ([#16](https://github.com/rokucommunity/logger/pull/16))
+ - upgrade to [brighterscript@0.72.5](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0725---2026-06-10). Notable changes since 0.72.1:
+     - Add parameter name inlay hints ([#1703](https://github.com/rokucommunity/brighterscript/pull/1703))
+     - Update minimum audit threshold ([#1723](https://github.com/rokucommunity/brighterscript/pull/1723))
+     - Accept GHSA-w5hq-g745-h8pq (uuid <11.1.1) advisory ([#1722](https://github.com/rokucommunity/brighterscript/pull/1722))
+     - Add security-audit-required gate job to security-audit workflow ([#1720](https://github.com/rokucommunity/brighterscript/pull/1720))
+     - Security Audit workflow ([#1718](https://github.com/rokucommunity/brighterscript/pull/1718))
+     - Security enhancements ([#1714](https://github.com/rokucommunity/brighterscript/pull/1714))
+
+
+
 ## [0.3.19](https://github.com/rokucommunity/roku-report-analyzer/compare/0.3.18...v0.3.19) - 2026-05-11
 ### Changed
  - upgrade to [brighterscript@0.72.1](https://github.com/rokucommunity/brighterscript/blob/master/CHANGELOG.md#0721---2026-05-11). Notable changes since 0.70.4:
