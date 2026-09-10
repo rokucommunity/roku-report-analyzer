@@ -29,18 +29,6 @@
   "files": [
     "dist/**/!(*.spec.*)*"
   ],
-  "mocha": {
-    "spec": "src/**/*.spec.ts",
-    "require": [
-      "source-map-support/register",
-      "ts-node/register"
-    ],
-    "fullTrace": true,
-    "timeout": 20000,
-    "watchExtensions": [
-      "ts"
-    ]
-  },
   "nyc": {
     "include": [
       "src/**/*.ts",
